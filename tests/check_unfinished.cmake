@@ -1,0 +1,7 @@
+execute_process(COMMAND "${PROGRAM}" --all RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(NOT status EQUAL 2)
+  message(FATAL_ERROR "Unfinished pipeline must return 2; got ${status}")
+endif()
+if(NOT error MATCHES "NOT IMPLEMENTED")
+  message(FATAL_ERROR "Unfinished pipeline must explain its status")
+endif()

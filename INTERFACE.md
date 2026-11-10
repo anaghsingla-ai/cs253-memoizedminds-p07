@@ -1,0 +1,72 @@
+# Shared contract — review before implementation
+
+Status: proposed scaffold contract, not yet reviewed by the six owners. Written before structures.
+Language C++17. Public headers: include/cs253/. Ownership is listed in README.md.
+
+## Values, ranges and modes
+- Range is zero-based [begin,end), with 0 <= begin <= end <= size(). Invalid ranges throw std::out_of_range before mutation. Empty builds and empty ranges are supported.
+- Values and tag coefficients are signed 64-bit. Residues are canonical [0,998244353).
+- exact_extrema mode permits a only in {-1,0,1}; reject other gains with std::invalid_argument before mutation. Values/min/max remain mathematical signed integers; sum is modular. Caller/generators must ensure all exact results and composed offsets fit int64; overflow is outside the supported workload domain. Use checked or wider intermediates, including negation of INT64_MIN. Document implementation bounds before benchmarking.
+- modular_sum mode permits arbitrary int64 a,b and initial values, reduced modulo the prime BEFORE arithmetic. Minimum and maximum are always absent: modular residues do not retain exact ordering. No midstream mode switch: build starts a new dataset.
+- Empty result: length=0, sum_mod=0, minimum/maximum absent in either mode. Nonempty exact result has both extrema. build replaces all state and resets counters; size/mode accessors require a successful build. update/query before build throw std::logic_error.
+- Separate modes are a team design choice resolving the PDF's distinct sum/extrema guarantees. Confirm against any examiner-provided input format; no such format is specified in the PDF.
+
+## Operations and composition
+build(initial,mode), update(range,tag), query(range), counters(), reset_counters(), check_invariants().
+Query returns all supported aggregates together. Query may push tags, so it is not const.
+Old pending tag f(x)=a1*x+b1 followed by new g(x)=a2*x+b2 combines as
+**compose(newer,older)=(a2*a1,a2*b1+b2)**. Identity=(1,0); reset=(0,b).
+Example: +3 then negate gives -x-3; negate then +3 gives -x+3.
+For length L: sum' = a*sum+b*L modulo P. Normalize negative residues.
+For a >= 0: min'=a*min+b, max'=a*max+b. For a < 0 use OLD max for new min
+and OLD min for new max. a=0 resets both extrema to b.
+These are contracts and derivation targets, not supplied arithmetic implementations.
+
+## Structure A invariant (owner D1)
+A node's aggregates ALREADY include its own pending tag. That tag is owed only to descendants;
+never apply it to the node again on push. Children may lag until pushed. Push applies the parent's
+tag to each child aggregate, composes it AFTER the child's pending tag, then resets the parent tag.
+After partial updates pull from current children. Full cover can stop at the node.
+Storage must be a self-written segment tree; O(n) build/space, O(log n) update/query.
+
+## Structure B invariant (owner D2)
+Each block stores raw elements, an outstanding affine tag and logical aggregates that include it.
+Full-block updates change the tag and aggregates; partial operations materialize pending work as
+needed, then rebuild aggregates. Never apply a block's pending tag twice. Last short block uses
+its actual length. Target O(n/b+b) per operation; choose and record b near sqrt(n).
+Storage is self-written square-root decomposition. std::vector is backing storage, not a substitute
+structure. Library maps/heaps/sets cannot stand in for either studied structure.
+
+## Oracle and invariant checking
+Oracle is an independently implemented plain array, same modes and exceptions. Do not share update
+arithmetic with structures: shared bugs invalidate differential tests. InvariantAccess is a friend
+of each concrete class. Oracle owner defines its overloads; check_invariants delegates to them.
+Checks are const and must not repair or mutate state, alter counters, or hide pending-tag bugs.
+Check effective aggregates against leaves/raw values, coverage, lengths, tags, mode rules and
+canonical residues. Full audits are expensive: use on small differential workloads, never inside timings.
+
+## Instrumentation
+Counters reset separately from state. nodes_visited counts every tree-node entry in update/query;
+push_downs counts nonidentity parent tags propagated to children (one per parent event, not per child).
+full_blocks counts fully covered B blocks processed; partial_elements counts raw entries read/written
+in partial-block processing INCLUDING materialization/rebuild; tag_compositions counts actual
+composition calls; aggregate_merges counts actual merge calls. Unused fields stay zero.
+Counters cover updates and queries after build, not build, audit, parsing or output.
+Analyst must document these units and separate profiling from timing if overhead matters.
+
+## Replay format (proposed, to be implemented by Architect)
+Whitespace tokens, no comments: CS253_V1; mode EXACT or MODULAR; seed; n q; n initial values;
+then q operations, each either U begin end a b or Q begin end. Reject unknown tokens,
+invalid values, truncated records and trailing input. Operation ranges use [begin,end).
+Replay output: query index, length, canonical sum and extrema (NA when absent); throughput separately.
+All structures replay the same initial values and operation sequence. Persist seeds plus workloads:
+a seed alone does not guarantee reproduction across generator versions.
+
+## Pipeline contracts
+pipeline.hpp declares replay, differential_test, shrink_failure, generate, benchmark and CSV output.
+Factories return fresh structures. Differential tests compare both structures with ArrayOracle,
+check after queries as well as updates, record seed/index and shrink the first failure.
+Benchmark runs on fresh state for >=5 repetitions, performs correctness validation outside timed
+regions, consumes answers, records every run and counters; timings exclude build unless explicitly
+reported as a separate metric. widths includes 1..n sweep with aligned/unaligned ranges.
+CSV schema is in results/README.md. No timing/throughput values may be fabricated by stubs.
