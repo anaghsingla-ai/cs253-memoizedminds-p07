@@ -21,3 +21,11 @@ add_custom_target(all_checks COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure 
 
 add_test(NAME scaffold_status COMMAND calibration --status)
 add_test(NAME unfinished_pipeline COMMAND ${CMAKE_COMMAND} -DPROGRAM=$<TARGET_FILE:calibration> -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_unfinished.cmake)
+
+# Structure B algorithm tests (self-contained: compiles src/structB/module.cpp directly, uses its own reference array)
+add_executable(structB_test tests/structB_test.cpp src/structB/module.cpp)
+target_link_libraries(structB_test PRIVATE cs253_contracts)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(structB_test PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+add_test(NAME structB_test COMMAND structB_test)
