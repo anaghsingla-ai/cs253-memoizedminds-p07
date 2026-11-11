@@ -1,26 +1,58 @@
+
 #pragma once
+
 #include "cs253/range_structure.hpp"
-#include <memory>
+#include <vector>
+
 namespace cs253 {
+
 struct InvariantAccess;
-// Declaration only. Owning member supplies Impl and all method definitions.
+
 class LazySegmentTree final : public RangeStructure {
+private:
+    struct Node {
+        Residue sum = 0;
+        Value mn = 0, mx = 0;
+        AffineTag lazy = {1, 0};
+    };
+
+    std::vector<Node> tree;
+    std::size_t n = 0;
+    Mode current_mode = Mode::exact_extrema;
+    Counters stats{};
+
+    void build_tree(int v, int tl, int tr,
+                    const std::vector<Value>& a);
+
+    void apply(int v, int tl, int tr, AffineTag tag);
+    void push(int v, int tl, int tr);
+    void pull(int v);
+
+    void update_tree(int v, int tl, int tr,
+                     int l, int r, AffineTag tag);
+
+    Aggregate query_tree(int v, int tl, int tr,
+                         int l, int r);
+
 public:
-    LazySegmentTree();
-    ~LazySegmentTree() override;
-    LazySegmentTree(const LazySegmentTree&) = delete;
-    LazySegmentTree& operator=(const LazySegmentTree&) = delete;
-    void build(const std::vector<Value>& initial, Mode mode) override;
+    LazySegmentTree() = default;
+    ~LazySegmentTree() override = default;
+
+    void build(const std::vector<Value>& initial,
+               Mode mode) override;
+
     std::size_t size() const noexcept override;
     Mode mode() const noexcept override;
+
     void update(Range range, AffineTag tag) override;
     Aggregate query(Range range) override;
+
     Counters counters() const noexcept override;
     void reset_counters() noexcept override;
+
     InvariantReport check_invariants() const override;
-private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+
     friend struct InvariantAccess;
 };
+
 } // namespace cs253
