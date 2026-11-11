@@ -8,9 +8,9 @@ Source: CS253_MA253_Lab_Projects.docx.pdf, common rules pp. 1–4 and Project 7 
 Evaluation: **17 November 2026**. Submission: **21 November 2026**.
 
 ## Current status
-Repository scaffold only. No structure, oracle, generator, replay or benchmark is implemented.
-CMake Release build and CTest scaffold checks pass. These checks do not establish algorithm correctness.
-Concrete classes are declarations only: instantiating one will fail to link until its owner implements it.
+Updated snapshot: Structure A and Structure B have implementations; Architect workload parser, serializer and reusable replay engine are implemented and tested. CLI, standalone Oracle, adversarial generators and benchmarks are still placeholders.
+The original scaffold checks are not full algorithm correctness checks. Structure B has a dedicated test target. Architect application core has a dedicated `app_test` target and sample workload in `tests/cases/architect_sample.txt`.
+Architect v1 interface review is prepared in [docs/ARCHITECT_REVIEW.md](docs/ARCHITECT_REVIEW.md), but **not frozen until the six owners sign off**.
 No team member names or personal role assignments have been assumed.
 
 ## Six owners (fill names and freeze at first checkpoint)
@@ -49,8 +49,8 @@ Each member works on their own branch, makes genuine commits across the project 
 and merges via a pull request reviewed by another member. Do not use bulk uploads as history.
 Suggested branches: member/struct-a, member/struct-b, member/architect, member/oracle,
 member/adversary, member/analyst. Repository: https://github.com/anaghsingla-ai/CS253-Lazy-Propagation.
-Setup branch: setup/cpp-team-scaffold; changes await team review before merging to main.
-Record names and GitHub handles in this table before work begins.
+The repository already contains setup and Structure B changes; check the current remote before merging additional work.
+Record names and GitHub handles in this table, and obtain explicit v1 interface sign-off before further integration.
 Only tag **final** after all modules, PDFs, tests and measurements are complete. Hidden tests
 and the live demonstration use a fresh clone of that release; later commits are ignored.
 
@@ -59,3 +59,6 @@ REPORT.md for results template, TOOLS.md for disclosure, docs/derivations/ for D
 
 ## Subsequent work
 Use this same repository for future changes; do not recreate it from a ZIP. Fetch current branch state, inspect teammates’ changes, and work on an owned feature branch. Never overwrite another member’s code or push directly to main without approval.
+
+## Architect Part 2
+The `app_core` CMake library implements CS253_V1 parsing/serialization and replay through `RangeStructure&`. It is linked into the `app_test` test executable with both existing structures. Run `ctest --test-dir build -R app_test --output-on-failure` to check it. The `calibration` CLI is **not** connected to the new library yet; that belongs to Part 3. Parser/replay resource guards limit each workload to five million elements and five million operations.
