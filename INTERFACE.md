@@ -72,13 +72,22 @@ reported as a separate metric. widths includes 1..n sweep with aligned/unaligned
 CSV schema is in results/README.md. No timing/throughput values may be fabricated by stubs.
 
 
-## Application CLI proposal (Architect-owned; not implemented)
-- `calibration --help` prints usage and exits 0; `calibration --status` accurately identifies what is implemented.
-- `calibration --run PATH --structure A|B|oracle` reads one workload from PATH and selects a structure. `oracle` is available only after the Oracle owner supplies its implementation.
-- `calibration --all` runs the complete reproducible tests, application and benchmarks. Until the pipeline actually exists, it must fail nonzero, never report fabricated success.
-- Exactly one command is accepted per invocation. Invalid flags, missing file names and unknown structures produce an informative message on stderr and a nonzero exit code.
-- Query result output (proposed stable machine-readable format): `Q <zero-based-query-number> LEN <length> SUM <canonical-residue> MIN <integer|NA> MAX <integer|NA>`. One line per query, in order. Print `ELAPSED_SECONDS` and `OPS_PER_SECOND` separately *after* queries; execution time excludes parsing, build and output, unless separately documented.
-- No CLI output or timing is computed by this contract document; it specifies behavior for the next implementation milestone.
+## Application CLI (Architect implementation)
+- `calibration --help` prints usage; `--status` reports which components are ready and which are blocked.
+- `calibration --run PATH --structure A|B|both` parses one CS253_V1 workload and runs Structure A,
+  Structure B, or both. `both` compares all returned query aggregates and exits nonzero on mismatch.
+- The Oracle selector is intentionally unavailable until the Oracle owner supplies its implementation.
+- `calibration --all` runs the available A/B sample application smoke check. It exits with status 3
+  and names the missing Oracle, Adversary and Analyst modules; it must not claim the complete pipeline
+  passed. Once those modules are delivered, the Architect integrates them and changes `--all` to run
+  the complete differential campaign, adversarial workloads, application and every benchmark.
+- Exactly one command is accepted per invocation. Invalid flags, missing file names and unknown
+  structures produce an informative message on stderr and a nonzero exit code.
+- Query output is stable and machine-readable: `Q <zero-based-query-number> LEN <length> SUM <canonical-residue> MIN <integer|NA> MAX <integer|NA>`.
+  One line is printed per query. `ELAPSED_SECONDS` and `OPS_PER_SECOND` follow the query rows;
+  counters are printed separately. Replay timing excludes parsing, build and output.
+- `OPS_PER_SECOND` uses the total number of workload operations (updates plus queries) divided by
+  the operation-loop elapsed time. If the measured duration is zero, the rate is printed as `NA`.
 
 ## Parser and serializer edge cases (Architect-owned; implemented in Part 2)
 - Text format is whitespace-tokenized, has no comments, uses the exact `CS253_V1` magic token and `EXACT` or `MODULAR` mode. All integer fields must be parsed completely and within their declared types; reject negative `n`, `q`, indices and malformed tokens before conversion to unsigned values.
@@ -88,9 +97,10 @@ CSV schema is in results/README.md. No timing/throughput values may be fabricate
 - `write_workload` uses the same format, and `read_workload(write_workload(w))` must preserve mode, seed, initial values, operation kinds/order, ranges and coefficients for valid workloads.
 - Format handling and CLI errors should not silently mutate the running structure; parse the whole input successfully before calling `replay`.
 
-## Architect Part 2 implementation status (12 November 2026)
-- `app/module.cpp` now implements `read_workload`, `write_workload`, and `replay` under the proposed CS253_V1 contract, pending team approval.
-- Replay validates the full workload before touching the selected structure, builds it, resets counters, times only the operation loop and captures query answers and counters. It does not fabricate timing or query data.
-- `tests/app_test.cpp` verifies valid input, serialization round trips, parser rejection, exact and modular replay on both existing implementations, and empty intervals.
-- The CLI in `app/main.cpp` is **still a placeholder**. CLI implementation and final --all orchestration are Part 3; this stage only links app_core to the new test.
-- Sign-off of the proposed interface is still pending.
+## Architect implementation status (Parts 2–4)
+- `app/module.cpp` implements `read_workload`, `write_workload`, and `replay` under the proposed CS253_V1 contract, pending team approval.
+- Replay validates the workload before changing the selected structure, builds it, resets counters, times only the operation loop and captures query answers and counters.
+- `app/main.cpp` implements `--help`, `--status`, `--run PATH --structure A|B|both` and a deliberately incomplete `--all` gate.
+- `tests/app_test.cpp` covers parser, serializer, replay and edge cases; `tests/check_cli.cmake` covers the command-line behavior.
+- `docs/derivations/D3.md` and `D3.pdf` contain the Architect proof. The author name and team approval remain to be supplied.
+- The full `--all` pipeline remains blocked by Oracle, Adversary and Analyst work; no full-scale run or benchmark is claimed.

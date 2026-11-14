@@ -1,42 +1,55 @@
 # Architect interface review — candidate v1
 
-Date: 12 November 2026. Owner: Architect (name/GitHub handle not supplied).
+Date: 12 November 2026. Owner: Architect (insert name/GitHub handle).
 
-**Status: awaiting six-member review.** This is a proposed contract, not evidence that teammates have agreed or that the implementation is finished. The existing public C++ headers and other owners’ source files were deliberately left unchanged.
+**Status: awaiting six-member review.** This remains a proposed contract, not evidence that teammates
+have agreed or that the interface is frozen. The application parser, serializer, replay engine and CLI
+are now implemented in this working snapshot. The Oracle, Adversary and Analyst modules remain
+placeholders. No remote Git push or team sign-off is claimed.
 
-## Already declared in code
+## Implemented by the Architect
 
-- C++17; `RangeStructure` has `build`, `size`, `mode`, `update`, `query`, `counters`, `reset_counters`, `check_invariants`.
-- `[begin,end)` zero-based indexing; empty ranges valid; `Workload` holds `mode`, `seed`, initial values and `std::variant<Update,Query>` operations.
-- `EXACT` mode limits `a` to `-1`, `0`, `1`; `MODULAR` mode permits arbitrary `int64_t` gain/offset; sums are modulo 998244353; nonempty exact queries return extrema.
-- Composition order is `compose(newer,older)`; after the old transform `(a1,b1)` the newer `(a2,b2)` produces `(a2*a1,a2*b1+b2)`.
-- Existing CLI has only `--status`; parser, serializer, replay and real `--all` orchestration do not exist yet.
+- `read_workload()` parses and validates the bounded `CS253_V1` text format.
+- `write_workload()` serializes a valid workload in the same format.
+- `replay()` builds a selected `RangeStructure`, resets counters, times the operation loop, and
+  returns query answers, counters and elapsed seconds.
+- `calibration --run PATH --structure A|B|both` replays a workload and reports query results,
+  elapsed time, throughput and counters. `both` compares A/B query aggregates.
+- `calibration --all` runs the available A/B application smoke workload, then exits with status 3
+  and a clear blocker message until the Oracle differential harness, Adversary generators and
+  Analyst benchmark harness are implemented and integrated.
+- D3 proof is written in `docs/derivations/D3.md` and exported to `D3.pdf`.
 
-## Proposed decisions requiring confirmation
+## Existing shared contract facts
+
+- C++17; `RangeStructure` exposes `build`, `size`, `mode`, `update`, `query`, `counters`,
+  `reset_counters` and `check_invariants`.
+- Ranges use zero-based half-open indexing `[begin,end)`; empty ranges are valid after build.
+- `EXACT` mode accepts affine gains `-1`, `0`, `1`; `MODULAR` mode accepts signed 64-bit affine
+  coefficients and stores sums modulo 998244353. Modular extrema are absent.
+- Composition order is `compose(newer, older) = (a2*a1, a2*b1+b2)`.
+
+## Decisions still requiring team confirmation
 
 | Item | Proposed v1 behavior | Why it matters | Sign-off |
 |---|---|---|---|
-| Before-build `size()` / `mode()` | `size()` returns 0 and `mode()` returns default exact mode; retain current `noexcept` signatures | The earlier text said these accessors require a build, but `noexcept` is incompatible with throwing; do not change headers without owner review | Pending |
-| Before-build `update()` / `query()` | Throw `std::logic_error`, even for `[0,0)` | Prevent unbuilt objects from appearing valid; Structure A currently needs an owner fix | Pending |
-| Empty range | Update is a no-op; query returns `length=0,sum_mod=0,extrema=NA`, if the structure has been built | Consistency across structures | Pending |
-| Indexing | Zero-based `[begin,end)` | Prevent off-by-one parser errors | Pending |
-| Exact-mode gain | Only `-1,0,1` allowed; reject before mutation | Keeps extrema exact and well-defined under contract | Pending |
-| Modular-mode extrema | Always absent | Modular residues do not preserve integer ordering | Pending |
-| Overflow domain | Supported exact workloads must avoid signed 64-bit overflow; implementations use wide arithmetic/checks | Avoid C++ undefined behavior | Pending |
-| Workload text | `CS253_V1` then EXACT/MODULAR, seed, `n q`, values, `U l r a b`/`Q l r` | Enables deterministic replay | Pending |
-| CLI output | Stable query rows and separate elapsed/throughput fields per `INTERFACE.md` | Supports manual demo and automated comparisons | Pending |
-| Pipeline `--all` | Must fail until tests, application and benchmarks genuinely run | Avoid false pass of rubric | Pending |
+| Before-build `size()` / `mode()` | `size()` returns 0 and `mode()` returns default exact mode; keep `noexcept` | Existing signatures cannot throw; confirm with both structure owners | Pending |
+| Before-build `update()` / `query()` | Throw `std::logic_error`, including empty intervals | Prevent unbuilt objects from appearing valid | Pending |
+| Empty range | Update is a no-op; query returns length 0, sum 0, extrema NA after build | Consistency across structures | Pending |
+| Exact-mode arithmetic | Supported workloads avoid signed 64-bit overflow; implementations use checked/wide intermediates | Prevent undefined behavior | Pending |
+| Timing scope | Build and parsing excluded; operation loop timed; output printed afterward | Makes A/B replay timing comparable | Pending |
+| CLI structure selector | `A`, `B`, or `both`; `oracle` becomes available after Oracle integration | Makes current availability explicit | Pending |
 
-## Review requests by owner
+## Owner-specific review requests
 
-- **Structure A:** confirm after-build empty-range behavior; fix before-build `update/query` to throw; confirm bounded exact arithmetic/overflow behavior.
-- **Structure B:** confirm range and mode conventions, reset behavior, counters and before-build semantics.
-- **Oracle:** confirm independent reference arithmetic, exception parity, invariants access, and parser-independent differential checking.
-- **Adversary:** consume and save `Workload` in `CS253_V1` format, including seeds; coordinate generators with Architect.
-- **Analyst:** confirm throughput timing scope, counter units and CSV fields; do not treat application throughput as full benchmark results.
-- **Architect:** implement parser/serializer/replay and CLI *after* sign-off; write application tests; own D3 proof.
+- **Structure A:** confirm empty-range behavior, before-build semantics and exact arithmetic bounds.
+- **Structure B:** confirm range/mode conventions, reset behavior, counters and before-build semantics.
+- **Oracle:** supply independent array arithmetic, invariant access and differential/shrinking harness.
+- **Adversary:** supply reproducible workload generators and save generated `CS253_V1` workloads.
+- **Analyst:** supply benchmark harness, CSV output, width sweep and documented counter units.
+- **Architect:** maintain parser/replay/CLI, D3 derivation and integration after owner modules arrive.
 
-## Sign-off record (fill in before marking contract frozen)
+## Sign-off record
 
 | Role | Name / handle | Approval date | Agreement or requested change |
 |---|---|---|---|
@@ -47,6 +60,4 @@ Date: 12 November 2026. Owner: Architect (name/GitHub handle not supplied).
 | Adversary | TBD | TBD | Pending |
 | Analyst | TBD | TBD | Pending |
 
-## Scope boundary
-
-This milestone only reviews and specifies the v1 interface and application behavior. It does **not** implement the CLI, parser, replay, oracle, benchmarks or proof D3. Those belong to subsequent work. Do not edit another owner’s implementation merely to make the contract appear complete.
+Do not change the status to “frozen v1” until all six owners have reviewed and approved the contract.

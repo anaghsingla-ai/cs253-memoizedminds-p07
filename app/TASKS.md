@@ -2,28 +2,46 @@
 
 Member: TBD. Branch: see README.md.
 
-Review/freeze shared interfaces; implement parser, replay, CLI selection and --all orchestration. Report query results and throughput. D3 requires proof of modulo variant, not an additional mandatory implemented structure.
+Own the shared interface review, application, CLI orchestration and D3 derivation. Do not change
+another owner's algorithm implementation without review. The public contract remains a candidate
+until all six owners sign off.
 
-Own derivation: D3, see docs/derivations/D3.md.
-Do not change another owner’s implementation without review. The module.cpp is a placeholder only.
-Read INTERFACE.md before coding; implementation and algorithm tests remain your work.
+## Milestone 1 — interface review
+- [x] Inspect shared headers, interfaces, application placeholders and build targets.
+- [x] Document proposed CLI, workload format, edge cases and output.
+- [x] Create role-by-role sign-off and discrepancy list.
+- [ ] Confirm six owner names/handles and obtain approval; resolve before-build semantics.
+- [ ] Mark contract frozen only after all approvals.
 
+## Milestone 2 — workload core
+- [x] Implement bounded `read_workload()` validation.
+- [x] Implement `write_workload()` round-trip serialization.
+- [x] Implement `replay()` through `RangeStructure&`; timer excludes build and printing.
+- [x] Add parser/serializer/replay tests using Structures A and B without editing their source.
 
-## Architect milestone 1 — interface review (12 November 2026)
-- [x] Inspect existing shared headers, interface, application placeholders and build targets.
-- [x] Document proposed CLI syntax, replay format, edge cases and output in INTERFACE.md.
-- [x] Create a role-by-role sign-off and discrepancy list in docs/ARCHITECT_REVIEW.md.
-- [ ] Confirm six actual owner names/handles (not supplied in snapshot).
-- [ ] Obtain six-member approval and resolve `noexcept`/before-build contradiction.
-- [ ] Mark contract `frozen v1` only after approvals (not yet done).
-- [ ] Create/push Architect feature branch in the shared remote (requires user authentication; not done here).
+## Milestone 3 — CLI and application integration
+- [x] Implement `--help`, `--status`, `--run PATH --structure A|B|both` and `--all` entry points.
+- [x] Link the application to `app_core`, Structure A and Structure B.
+- [x] Print one stable query row per answer, then elapsed time, throughput and counters.
+- [x] Compare A/B answers when `--structure both` is selected.
+- [x] Make `--all` run the available A/B application smoke workload and explicitly fail while Oracle,
+      Adversary and Analyst modules are unavailable.
+- [x] Add CLI integration checks; remove the old test that expected the CLI to be unimplemented.
+- [ ] Once owner modules arrive, integrate Oracle differential tests, adversarial workloads and all
+      Analyst benchmarks into `--all`; require the full one-million-element/one-million-operation run.
 
-Next milestone: implement `read_workload`, `write_workload`, `replay` and application tests; leave other owners' code untouched.
+## Milestone 4 — D3 proof
+- [x] Prove by equal-sum/equal-length counterexample that `(sum, length, k)` cannot determine the
+      post-modulo sum.
+- [x] State the restricted API and nonnegative bounded-value assumptions.
+- [x] Prove the halving lemma and count effective changes across assignment-separated lifetimes.
+- [x] Derive the max-pruning segment-tree total-time bound.
+- [x] Create `docs/derivations/D3.pdf` from the authored proof.
+- [ ] Insert the responsible author's name, review the proof and explain it independently in viva.
 
-## Architect milestone 2 — workload core (12 November 2026)
-- [x] Implement `read_workload()` with CS253_V1 validation and bounded allocations.
-- [x] Implement `write_workload()` with round-trip preservation.
-- [x] Implement `replay()` via `RangeStructure&`, excluding build and printing from its timer.
-- [x] Add `tests/app_test.cpp` and register CTest target (`app_test`).
-- [x] Exercise replay through the existing A and B implementations without editing their code.
-- [ ] Next: implement real CLI arguments/output in `app/main.cpp`, link application core and structures into `calibration`, and coordinate --all with other owners.
+## Remaining Architect/release actions
+- [ ] Obtain interface sign-off from all six owners; do not call the interface frozen prematurely.
+- [ ] Review final integration with the Oracle, Adversary and Analyst owners.
+- [ ] Run the final pipeline from a fresh clone after all modules and full-scale workloads are merged.
+- [ ] Commit changes on the Architect branch and merge through a reviewed pull request; no remote push
+      or team approval is claimed by this local artifact.
