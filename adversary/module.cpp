@@ -59,6 +59,7 @@ Workload generate(AdversarialTarget target, const GeneratorConfig& c) {
     const auto n = c.elements;
     const auto b = block_size(n);
     const auto blocks = n ? n / b + (n % b != 0) : 0;
+    const auto push_probe = push_range(n);
     std::vector<std::size_t> widths;
     if (n) {
         widths = {1, n, c.range_width, b, b > 1 ? b - 1 : 1, std::min(n, b + 1)};
@@ -78,27 +79,27 @@ Workload generate(AdversarialTarget target, const GeneratorConfig& c) {
             case AdversarialTarget::push_downs:
                 // Re-prime before EVERY probe. Resets cannot cancel to identity.
                 if (i % 2 == 0) w.operations.emplace_back(Update{{0, n}, {0, offset}});
-                else w.operations.emplace_back(Query{push_range(n)});
+                else w.operations.emplace_back(Query{push_probe});
                 break;
             case AdversarialTarget::alternating_negative_gain: {
                 const auto mid = n / 2;
                 switch (phase) {
                     case 0: w.operations.emplace_back(Update{{0, n}, {-1, 7}}); break;
-                    case 1: w.operations.emplace_back(Update{{0, n}, {1, 3}}); break;
-                    case 2: w.operations.emplace_back(Update{{0, n}, {-1, -5}}); break;
-                    case 3: w.operations.emplace_back(Query{{0, n}}); break;
+                    case 1: w.operations.emplace_back(Query{{0, n}}); break;
+                    case 2: w.operations.emplace_back(Update{{0, n}, {1, 3}}); break;
+                    case 3: w.operations.emplace_back(Update{{0, n}, {-1, -5}}); break;
                     case 4: w.operations.emplace_back(Query{{0, 1}}); break;
                     case 5: w.operations.emplace_back(Update{{mid, n}, {0, -11}}); break;
                     case 6: w.operations.emplace_back(Update{{0, mid + 1}, {-1, 9}}); break;
-                    case 7: w.operations.emplace_back(Query{{mid, mid + 1}}); break;
+                    case 7: w.operations.emplace_back(Query{{0, mid + 1}}); break;
                     case 8: w.operations.emplace_back(Update{{0, n}, {-1, 0}}); break;
-                    case 9: w.operations.emplace_back(Query{{n - 1, n}}); break;
+                    case 9: w.operations.emplace_back(Query{{0, n}}); break;
                     case 10: w.operations.emplace_back(Update{{n, n}, {0, 17}}); break;
                     case 11: w.operations.emplace_back(Query{{n, n}}); break;
                     case 12: w.operations.emplace_back(Update{{0, n}, {1, -3}}); break;
                     case 13: w.operations.emplace_back(Update{{0, n}, {-1, 0}}); break;
                     case 14: w.operations.emplace_back(Query{random_width(rng, n, c.range_width)}); break;
-                    default: w.operations.emplace_back(Query{{0, n}}); break;
+                    default: w.operations.emplace_back(Query{{n - 1, n}}); break;
                 }
                 break;
             }

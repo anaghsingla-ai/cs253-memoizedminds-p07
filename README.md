@@ -13,7 +13,7 @@ generators, export CLI and module tests are implemented; see [adversary/README.m
 The application replay, production Oracle/differential harness and Analyst benchmark
 remain unfinished. The calibration --all entry point still returns its explicit unfinished status.
 The adversary tests use their own independent test-only array reference.
-No team member names or personal role assignments have been assumed.
+Other team member names remain to be filled in by the team.
 
 ## Six owners (fill names and freeze at first checkpoint)
 | Member | Role | Owned implementation | Derivation |

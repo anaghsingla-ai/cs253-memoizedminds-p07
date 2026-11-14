@@ -45,5 +45,6 @@ It validates generation only; timings belong to the Analyst. On differential
 failure, `adversary_failure.txt` preserves the full replay and stderr records
 the seed and operation index. Member 4 retains ownership of shrinking.
 
-See `docs/derivations/D5.md` for the proof. Record the generator commit with saved
+See `docs/derivations/D5.md` and `docs/derivations/D5.pdf` for the proof.
+Record the generator commit with saved
 workloads. No benchmark crossover or throughput is claimed by these generators.

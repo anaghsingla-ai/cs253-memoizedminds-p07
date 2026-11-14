@@ -194,6 +194,15 @@ int main(int argc, char** argv) {
                     differential(w); ++runs;
                 }
         exact_push_counts(); block_counts(); errors();
+        // The first full negation is observed BEFORE a second negation could
+        // accidentally mask a missing extrema swap. The pending tag stays lazy.
+        GeneratorConfig neg; neg.elements = 2; neg.operations = 2;
+        const auto nw = generate(AdversarialTarget::alternating_negative_gain, neg);
+        require(std::holds_alternative<Update>(nw.operations[0]) &&
+                std::holds_alternative<Query>(nw.operations[1]), "missing first-negation probe");
+        Reference nr(nw); nr.update(std::get<Update>(nw.operations[0]));
+        const auto ng = nr.query(std::get<Query>(nw.operations[1]).range);
+        require(ng.minimum == -30 && ng.maximum == 26, "wrong negative extrema example");
         GeneratorConfig c; c.elements = 257; c.operations = 512; c.range_width = 7;
         auto w = generate(AdversarialTarget::range_width_sweep, c);
         bool single = false, whole = false, configured = false;
