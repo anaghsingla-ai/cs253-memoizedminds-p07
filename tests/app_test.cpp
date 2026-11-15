@@ -77,7 +77,7 @@ int main() {
     assert(ra.counters.nodes_visited > 0);
     assert(rb.counters.full_blocks + rb.counters.partial_elements > 0);
 
-    // Empty dataset and empty interval remain valid, including update no-op.
+
     Workload empty;
     empty.seed = std::numeric_limits<Seed>::max();
     empty.operations = {Query{{0, 0}}, Update{{0, 0}, {-1, 8}}, Query{{0, 0}}};
@@ -89,7 +89,7 @@ int main() {
         assert(!x.minimum && !x.maximum);
     }
 
-    // Full signed range is accepted in MODULAR mode, extrema must be absent.
+
     Workload modular;
     modular.mode = Mode::modular_sum;
     modular.initial = {std::numeric_limits<Value>::min(), -8};
@@ -101,7 +101,7 @@ int main() {
     assert(mod_a.answers[0].sum_mod == mod_b.answers[0].sum_mod);
     assert(!mod_a.answers[0].minimum && !mod_a.answers[0].maximum);
 
-    // Round-trip writer should reject invalid programmatically assembled work.
+
     Workload invalid = workload;
     invalid.operations.push_back(Update{{0, 4}, {2, 0}});
     bool invalid_writer = false;
@@ -109,7 +109,7 @@ int main() {
     catch (const std::invalid_argument&) { invalid_writer = true; }
     assert(invalid_writer);
 
-    // An invalid replay must not build or modify the target.
+
     LazySegmentTree untouched;
     bool invalid_replay = false;
     try { replay(untouched, invalid); }
@@ -123,7 +123,7 @@ int main() {
     must_fail("CS253_V1 EXACT 1 -1 0");
     must_fail("CS253_V1 EXACT 1 0 -2");
     must_fail("CS253_V1 EXACT 1 0 1 X 0 0");
-    must_fail("CS253_V1 EXACT 1 2 0 5"); // incomplete initial values
+    must_fail("CS253_V1 EXACT 1 2 0 5");
     must_fail("CS253_V1 EXACT 1 1 1 5 Q 0");
     must_fail("CS253_V1 EXACT 1 1 1 5 Q -1 1");
     must_fail("CS253_V1 EXACT 1 1 1 5 Q 0 2");
@@ -135,7 +135,7 @@ int main() {
     must_fail("CS253_V1 MODULAR 1 0 1 Q 0 0 more");
     must_fail("CS253_V1 EXACT 1 5000001 0");
 
-    // Multiple parses must not have hidden state or depend on global streams.
+
     std::istringstream second(exact);
     assert(same_workload(read_workload(second), workload));
     std::cout << "Architect app tests passed\n";

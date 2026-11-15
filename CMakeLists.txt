@@ -8,19 +8,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(cs253_contracts INTERFACE)
 target_include_directories(cs253_contracts INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Team-owned implementations. These are compiled once and linked by the app/tests.
+
 add_library(range_structures STATIC
   src/structA/module.cpp
   src/structB/module.cpp
 )
 target_link_libraries(range_structures PUBLIC cs253_contracts)
 
-# Architect-owned parser, serializer and replay engine.
+
 add_library(app_core STATIC app/module.cpp)
 target_link_libraries(app_core PUBLIC cs253_contracts)
 
-# These owner modules are still scaffolds in the current repository snapshot.
-# Keep compiling them so interface drift is detected, but do not fake their behavior.
+
+
 add_library(module_placeholders OBJECT
   oracle/module.cpp
   adversary/module.cpp
@@ -60,14 +60,14 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
                           calibration structB_test app_test)
     target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
   endforeach()
-  # The repository tests use assert(); keep assertions enabled even in Release builds.
+
   target_compile_options(contract_smoke PRIVATE -UNDEBUG)
   target_compile_options(structB_test PRIVATE -UNDEBUG)
   target_compile_options(app_test PRIVATE -UNDEBUG)
 endif()
 
-# This target intentionally fails at --all until Oracle, Adversary and Analyst
-# implementations are delivered and integrated. It must never report a false pass.
+
+
 add_custom_target(all_checks
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
   COMMAND $<TARGET_FILE:calibration> --all

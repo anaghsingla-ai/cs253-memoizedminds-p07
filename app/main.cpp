@@ -155,7 +155,7 @@ int run_available_all() {
     return 3;
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
     try {

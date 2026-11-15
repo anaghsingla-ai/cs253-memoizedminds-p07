@@ -11,9 +11,9 @@ using Residue = std::int64_t;
 using Seed = std::uint64_t;
 inline constexpr Residue modulus = 998244353;
 enum class Mode { exact_extrema, modular_sum };
-// Zero-based half-open interval [begin,end); empty intervals are valid.
+
 struct Range { std::size_t begin = 0, end = 0; };
-// Identity (1,0); compose(newer,older) means newer after older.
+
 struct AffineTag { Value a = 1, b = 0; };
 struct Aggregate {
     std::size_t length = 0;
@@ -35,4 +35,4 @@ struct Counters {
     std::uint64_t tag_compositions = 0, aggregate_merges = 0;
 };
 struct InvariantReport { bool ok = false; std::vector<std::string> violations; };
-} // namespace cs253
+}

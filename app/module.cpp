@@ -15,8 +15,8 @@
 namespace cs253 {
 namespace {
 
-// A resource guard for untrusted workload files; supports the lab's 10^6 scale.
-// Adjust deliberately if experiments require larger datasets.
+
+
 constexpr std::size_t max_elements = 5'000'000;
 constexpr std::size_t max_operations = 5'000'000;
 
@@ -82,7 +82,7 @@ const char* mode_name(Mode mode) {
     throw std::invalid_argument("Unknown workload mode");
 }
 
-} // namespace
+}
 
 Workload read_workload(std::istream& input) {
     if (next_token(input, "format header") != "CS253_V1") {
@@ -136,7 +136,7 @@ Workload read_workload(std::istream& input) {
 }
 
 void write_workload(std::ostream& output, const Workload& workload) {
-    validate_workload(workload); // Reject malformed objects before writing anything.
+    validate_workload(workload);
 
     output << "CS253_V1\n" << mode_name(workload.mode) << '\n'
            << workload.seed << '\n'
@@ -161,7 +161,7 @@ void write_workload(std::ostream& output, const Workload& workload) {
 }
 
 ReplayResult replay(RangeStructure& structure, const Workload& workload) {
-    validate_workload(workload); // Validate before changing the structure's state.
+    validate_workload(workload);
     structure.build(workload.initial, workload.mode);
     structure.reset_counters();
 
@@ -187,4 +187,4 @@ ReplayResult replay(RangeStructure& structure, const Workload& workload) {
     return result;
 }
 
-} // namespace cs253
+}
