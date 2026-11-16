@@ -229,6 +229,64 @@ void test_errors_and_edges() {
     CHECK(threw);
 }
 
+
+void test_counters() {
+    set_sqrt_block_size(0);
+    SqrtDecomposition s;
+    s.build({1, 2, 3, 4, 5, 6}, Mode::exact_extrema);
+    s.update({0, 6}, {1, 2});
+    CHECK(s.counters().full_blocks == 2);
+    CHECK(s.counters().tag_compositions == 2);
+
+    s.reset_counters();
+    (void)s.query({1, 5});
+    CHECK(s.counters().partial_elements == 4);
+    CHECK(s.counters().aggregate_merges == 1);
+    CHECK(s.counters().full_blocks == 0);
+    CHECK(s.counters().tag_compositions == 0);
+}
+
+void test_overflow_leaves_block_unchanged() {
+    set_sqrt_block_size(2);
+    SqrtDecomposition s;
+    s.build({INT64_MAX, 0}, Mode::exact_extrema);
+    const Aggregate before = s.query({0, 2});
+    bool threw = false;
+    try {
+        s.update({0, 2}, {1, 1});
+    } catch (const std::overflow_error&) {
+        threw = true;
+    }
+    CHECK(threw);
+    CHECK(same(s.query({0, 2}), before));
+    CHECK(s.check_invariants().ok);
+    set_sqrt_block_size(0);
+}
+
+void test_large_values() {
+    set_sqrt_block_size(0);
+    const std::vector<Value> exact_values{INT64_MAX, INT64_MIN, 17, -29};
+    SqrtDecomposition exact;
+    exact.build(exact_values, Mode::exact_extrema);
+    RefArray exact_ref(exact_values, Mode::exact_extrema);
+    CHECK(same(exact.query({0, exact_values.size()}),
+               exact_ref.query({0, exact_values.size()})));
+    exact.update({1, 4}, {0, INT64_MAX});
+    exact_ref.update({1, 4}, {0, INT64_MAX});
+    CHECK(same(exact.query({0, exact_values.size()}),
+               exact_ref.query({0, exact_values.size()})));
+    CHECK(exact.check_invariants().ok);
+
+    const std::vector<Value> modular_values{INT64_MIN, INT64_MAX, -1, 0};
+    SqrtDecomposition modular;
+    modular.build(modular_values, Mode::modular_sum);
+    RefArray modular_ref(modular_values, Mode::modular_sum);
+    modular.update({0, 4}, {INT64_MIN, INT64_MAX});
+    modular_ref.update({0, 4}, {INT64_MIN, INT64_MAX});
+    CHECK(same(modular.query({0, 4}), modular_ref.query({0, 4})));
+    CHECK(modular.check_invariants().ok);
+}
+
 }
 
 int main() {
