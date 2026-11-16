@@ -51,11 +51,11 @@ public:
         impl.build(initial,mode);
     }
 
-    std::size_t size() const noexcept override{
+    std::size_t size() const override{
         return impl.size();
     }
 
-    Mode mode() const noexcept override{
+    Mode mode() const override{
         return impl.mode();
     }
 

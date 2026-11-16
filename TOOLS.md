@@ -18,21 +18,29 @@ Changes after initial generation: retained original README introduction and igno
 Each member adds tools used, affected files, generated parts and subsequent human changes.
 Declared AI use costs no marks under the PDF; understanding and explainability are assessed in viva.
 
-## OpenAI ChatGPT / Codex - Member 5 implementation, 14 November 2026
-Generated the adversary generators, local replay exporter/CLI, module tests,
-additive CMake targets, CI workflow, module documentation and D5 proof.
-Inspected the professor's PDF and current main/part-e branches through GitHub.
-Preserved shared interfaces and all teammate algorithms. Test-only reference
-arithmetic is independent from the structures and does not replace the Oracle.
-Human review/changes: pending Anagh's review; no human edits are claimed.
 
-## OpenAI ChatGPT / Codex - Member 5 review, 16 November 2026
-Reviewed the current main and part-e/adversary branches and the uploaded submission
-guidelines. Renamed generator helpers/variables for readability; added a repeated
-partial-update push-count regression test; updated the D5 derivation and exported
-it as D5_250001006.pdf using the roll number supplied by Anagh. Added the PDF
-export script and recorded verification in adversary/README.md and REPORT.md.
-Used GCC 14.2.0, CMake 4.4.5, CTest, Python, ReportLab and Poppler for checks.
-Human review/changes: Anagh supplied the roll number; code review remains pending.
-Representative prompt: "See whether my D5 part is completed; finish anything
-missing with easy C++ code and push it into my branch."
+## ChatGPT — Architect v1 interface review, 12 November 2026
+Drafted an Architect contract review, proposed CLI/parser conventions, acceptance decisions and a sign-off checklist. Edited INTERFACE.md, README.md and app/TASKS.md; added docs/ARCHITECT_REVIEW.md. No algorithm modules, shared public headers or CMake source targets were modified as part of this milestone. All proposed decisions require human/team review; no approval or remote Git push is claimed. The Architect should record their subsequent edits and decisions here.
+
+## ChatGPT — Architect Part 2 workload core, 12 November 2026
+Generated `app/module.cpp` implementations for read_workload, write_workload and replay; added `tests/app_test.cpp`, `tests/cases/architect_sample.txt`, a test-linked `app_core` CMake target, and related documentation updates. Used CMake/CTest to compile and execute tests. Human author/Architect must review parser resource guards, input format and operation timing semantics before merge; team contract still requires sign-off. No Structure A/B, Oracle, Adversary or Analyst source implementations were changed.
+
+
+## ChatGPT — Architect Parts 3–4, 14 November 2026
+Implemented the Architect CLI and application integration in `app/main.cpp`; updated CMake targets to
+link app_core with the existing Structure A/B implementations; added CLI integration checks; replaced
+stale scaffold-status documentation; and made `--all` execute the available A/B sample smoke check
+while exiting nonzero with explicit blockers for missing Oracle, Adversary and Analyst modules.
+Authored the D3 proof in `docs/derivations/D3.md` and exported `D3.pdf` using ReportLab. The existing Structure A and
+Structure B implementation files were not edited. The work was built and tested locally; the team must
+review the CLI contract and proof, insert the named author's name, obtain six-owner interface approval,
+and complete the missing owner modules before claiming final pipeline completion.
+
+## Repository integration assistance — 17 November 2026
+
+OpenAI ChatGPT assisted with read-only inspection of the remote branch histories and CI logs,
+creating pre-integration safety refs, identifying and repairing the malformed Structure B
+conflict-resolution edit, adding terminal menu and benchmark integration, updating regression
+checks and reconciling report statistics against the committed CSV. GitHub Actions was used
+to compile and run the CTest suite after changes. The repository owner/team must review the
+resulting code and retain responsibility for the submitted implementation and derivations.

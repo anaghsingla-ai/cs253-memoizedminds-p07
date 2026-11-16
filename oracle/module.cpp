@@ -66,11 +66,15 @@ void ArrayOracle::build(
     impl_->built=true;
 }
 
-std::size_t ArrayOracle::size() const noexcept{
+std::size_t ArrayOracle::size() const{
+    if(!impl_->built)
+        throw std::logic_error("ArrayOracle: build() not called");
     return impl_->arr.size();
 }
 
-Mode ArrayOracle::mode() const noexcept{
+Mode ArrayOracle::mode() const{
+    if(!impl_->built)
+        throw std::logic_error("ArrayOracle: build() not called");
     return impl_->current_mode;
 }
 
