@@ -2,6 +2,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(cs253_lazy_propagation LANGUAGES CXX)
 
+find_package(Threads REQUIRED)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -34,7 +36,7 @@ target_link_libraries(adversary_generate PRIVATE cs253_adversary)
 
 # Main calibration application.
 add_executable(calibration app/main.cpp)
-target_link_libraries(calibration PRIVATE app_core range_structures oracle_core bench_core cs253_adversary)
+target_link_libraries(calibration PRIVATE app_core range_structures oracle_core bench_core cs253_adversary Threads::Threads)
 target_compile_definitions(calibration PRIVATE
     CS253_SAMPLE_WORKLOAD_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/cases/architect_sample.txt"
 )
