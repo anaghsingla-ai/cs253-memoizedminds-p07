@@ -64,7 +64,7 @@ void print_status(const char* label, const std::string& message) {
     if (terminal) std::cout << color;
     std::cout << "[" << label << "]";
     if (terminal) std::cout << "\033[0m";
-    std::cout << " " << message << '\\n';
+    std::cout << " " << message << '\n';
 }
 
 class Spinner {
@@ -73,11 +73,11 @@ public:
         : active_(stderr_is_terminal()), message_(std::move(message)) {
         if (!active_) return;
         worker_ = std::thread([this] {
-            static const char frames[] = {'-', '\\\\', '|', '/'};
+            static const char frames[] = {'-', '\\', '|', '/'};
             std::size_t frame = 0;
             while (!stop_.load()) {
-                std::cerr << "\\r\\033[33m" << frames[frame++ % 4]
-                          << "\\033[0m " << message_ << std::flush;
+                std::cerr << "\r\033[33m" << frames[frame++ % 4]
+                          << "\033[0m " << message_ << std::flush;
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
         });
@@ -86,7 +86,7 @@ public:
     ~Spinner() {
         stop_.store(true);
         if (worker_.joinable()) worker_.join();
-        if (active_) std::cerr << "\\r\\033[2K" << std::flush;
+        if (active_) std::cerr << "\r\033[2K" << std::flush;
     }
 
     Spinner(const Spinner&) = delete;
@@ -167,7 +167,14 @@ void print_result(const char* name, const ReplayResult& result,
             print_optional_value(answer.minimum);
             std::cout << std::setw(12);
             print_optional_value(answer.maximum);
-            std::cout << "\n";
+            std::cout << "\n"
+                      << "  Q " << i << " LEN " << answer.length
+                      << " SUM " << answer.sum_mod << " MIN ";
+            if (answer.minimum) std::cout << *answer.minimum;
+            else std::cout << "NA";
+            std::cout << " MAX ";
+            if (answer.maximum) std::cout << *answer.maximum << '\n';
+            else std::cout << "NA\n";
         }
     }
 
@@ -175,7 +182,9 @@ void print_result(const char* name, const ReplayResult& result,
               << "  Elapsed time       : " << std::fixed << std::setprecision(6)
               << result.elapsed_seconds << " s\n"
               << "  Throughput         : " << std::setprecision(2)
-              << rate << " operations/s\n";
+              << rate << " operations/s\n"
+              << "  ELAPSED_SECONDS " << std::setprecision(6) << result.elapsed_seconds << "\n"
+              << "  OPS_PER_SECOND " << std::setprecision(2) << rate << "\n";
 
     const Counters& c = result.counters;
     std::cout << "\n  INTERNAL COUNTERS\n"
@@ -245,15 +254,17 @@ int run_selected(const Workload& workload, const std::string& selected) {
         print_result("ORACLE", ro, workload);
         if (!same_answers(ra.answers, rb.answers) ||
             !same_answers(ra.answers, ro.answers)) {
+            print_status("FAIL", "Structure A, Structure B and Oracle disagree.");
             std::cerr << "ERROR: A, B and Oracle query answers differ.\n";
             return 4;
         }
         std::cout << "\n============================================================\n"
                   << "                 DIFFERENTIAL VERIFICATION\n"
-                  << "============================================================\n"
-                  << "  [PASS] Structure A, Structure B and Oracle agree.\n"
-                  << "  Query results checked: " << ra.answers.size() << "\n"
+                  << "============================================================\n";
+        print_status("PASS", "Structure A, Structure B and Oracle agree.");
+        std::cout << "  Query results checked: " << ra.answers.size() << "\n"
                   << "  All reported aggregates match for this workload.\n"
+                  << "  A_B_ORACLE_QUERY_ANSWERS MATCH\n"
                   << "============================================================\n";
         return 0;
     }
@@ -371,8 +382,9 @@ int run_menu() {
                 Workload candidate = load_workload(path);
                 current = std::move(candidate);
                 has_workload = true;
-                std::cout << "Loaded " << current.initial.size() << " values and "
-                          << current.operations.size() << " operations.\n";
+                print_status("PASS", "Loaded " + std::to_string(current.initial.size()) +
+                             " values and " + std::to_string(current.operations.size()) +
+                             " operations.");
             } else if (choice == 2) {
                 GeneratorConfig config;
                 const AdversarialTarget target = ask_target();
@@ -405,8 +417,9 @@ int run_menu() {
                 config.seed = ask_integer<Seed>("Seed: ", 0, std::numeric_limits<Seed>::max());
                 config.mode = ask_mode();
                 const DifferentialResult result = differential_test(make_a(), make_b(), config);
-                std::cout << (result.passed ? "DIFFERENTIAL PASS: " : "DIFFERENTIAL FAIL: ")
-                          << result.message << " checked=" << result.operations_checked << '\n';
+                print_status(result.passed ? "PASS" : "FAIL",
+                             "Differential test: " + result.message +
+                             " checked=" + std::to_string(result.operations_checked));
                 if (result.failing_case) {
                     const std::string path = ask_line("Save minimized failing workload path (blank to skip): ");
                     if (!path.empty()) save_workload(*result.failing_case, path);
@@ -418,7 +431,7 @@ int run_menu() {
                 if (!output) throw std::runtime_error("Cannot write CSV file: " + path);
                 run_benchmark(current, output);
                 if (!output) throw std::runtime_error("I/O error writing CSV file: " + path);
-                std::cout << "Benchmark complete; CSV saved to " << path << ".\n";
+                print_status("PASS", "Benchmark complete; CSV saved to " + path + ".");
             } else if (choice == 7) {
                 if (!has_workload) {
                     std::cout << "No workload loaded.\n";
