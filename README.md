@@ -8,8 +8,8 @@ Source: CS253_MA253_Lab_Projects.docx.pdf, common rules pp. 1–4 and Project 7 
 Evaluation: **17 November 2026**. Submission: **21 November 2026**.
 
 ## Current status
-Updated snapshot: Structure A and Structure B have implementations. The Architect parser, serializer, replay engine and CLI are implemented and tested. The Oracle differential harness, Adversary generators and Analyst benchmark harness are still placeholders.
-The tests cover the shared contract smoke check, Structure B, parser/serializer/replay through A and B, and CLI integration. They do not replace the required one-million-operation differential campaign or full-scale benchmarks. The sample workload is `tests/cases/architect_sample.txt`.
+Merged snapshot: Structure A and Structure B, the Architect parser/serializer/replay CLI, and the Adversary workload generator are implemented. The Analyst benchmark function, plotting script and a 100,000-element width-sweep CSV are included; the benchmark runner is not yet wired into `calibration --all`. The Oracle implementation and differential harness remain outstanding.
+The tests cover the accessor contract, Structure B, parser/serializer/replay through A and B, CLI integration, Adversary generation/differential checks, and the Adversary million-element generation scale checks. They do not replace the required one-million-operation Oracle differential campaign or full-scale benchmark campaign. The sample workload is `tests/cases/architect_sample.txt`.
 Architect v1 interface review is documented in [docs/ARCHITECT_REVIEW.md](docs/ARCHITECT_REVIEW.md), but **not frozen until the six owners sign off**.
 No team member names or personal role assignments have been assumed.
 
@@ -49,10 +49,10 @@ One-command full workflow entry point:
 bash scripts/run_all.sh
 ```
 The build and current tests run first. `calibration --all` then runs the available A/B application
-smoke workload and exits with code 3 while Oracle differential testing, Adversary generators and
-Analyst benchmarks are missing. This is an intentional blocker, not a successful full-pipeline run.
-Once those owner modules are delivered, `--all` must execute the complete differential campaign,
-application and every benchmark at the required scale. Never turn the blocker into a false pass.
+smoke workload and exits with code 3 because the Oracle differential harness is missing and the
+Analyst benchmark runner is not yet connected to the application. The Adversary generator is available
+as `adversary_generate` and has dedicated tests. This is an intentional blocker, not a successful
+full-pipeline run. Complete the Oracle module and wire the benchmark runner into `--all` before release.
 The equivalent CMake target is `all_checks`.
 
 ## Team workflow and release
@@ -75,6 +75,6 @@ Use this same repository for future changes; do not recreate it from a ZIP. Fetc
 ## Architect Parts 2–4
 `app_core` implements CS253_V1 parsing/serialization and replay through `RangeStructure&`. `calibration` is linked to app_core and both current structures. Its `--run` command reports query aggregates, elapsed operation-loop time, operations/second and counters. `--structure both` compares A/B query results.
 
-`--all` currently runs the A/B sample application check and returns code 3 with an explicit blocker until the Oracle, Adversary and Analyst modules are implemented. It does not claim the full assignment pipeline has passed. Parser/replay resource guards limit each workload to five million elements and five million operations.
+`--all` currently runs the A/B sample application check and returns code 3 with an explicit blocker until the Oracle differential harness and Analyst benchmark runner are integrated. The Adversary generator is implemented and tested. It does not claim the full assignment pipeline has passed. Parser/replay resource guards limit each workload to five million elements and five million operations.
 
 Architect D3 is fully drafted in `docs/derivations/D3.md` and exported to `docs/derivations/D3.pdf`; the author must insert their name and review the proof before submission.

@@ -115,7 +115,10 @@ int main() {
     try { replay(untouched, invalid); }
     catch (const std::invalid_argument&) { invalid_replay = true; }
     assert(invalid_replay);
-    assert(untouched.size() == 0);
+    bool unbuilt_accessor = false;
+    try { (void)untouched.size(); }
+    catch (const std::logic_error&) { unbuilt_accessor = true; }
+    assert(unbuilt_accessor);
 
     must_fail("WRONG EXACT 1 0 0");
     must_fail("CS253_V1 BAD 1 0 0");

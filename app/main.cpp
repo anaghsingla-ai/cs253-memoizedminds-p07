@@ -33,8 +33,8 @@ void print_usage(std::ostream& out) {
 void print_status() {
     std::cout
         << "parser=ready replay=ready cli=ready structure_A=ready structure_B=ready\n"
-        << "oracle=missing adversary=missing benchmarks=missing\n"
-        << "full_pipeline=blocked_until_team_modules_are_integrated\n";
+        << "oracle=missing adversary=ready benchmarks=implemented_not_integrated\n"
+        << "full_pipeline=blocked_until_oracle_and_benchmark_runner_integration\n";
 }
 
 void print_optional_value(const std::optional<Value>& value) {
@@ -148,10 +148,12 @@ int run_available_all() {
     }
 
     std::cout << "AVAILABLE_APP_SMOKE PASS\n"
-              << "BLOCKED: full --all requires the Oracle differential harness, "
-              << "Adversary generators and Analyst benchmark harness.\n"
-              << "No full-pipeline pass is claimed. Implement and integrate those owner modules, "
-              << "then extend --all before final release.\n";
+              << "BLOCKED: full --all requires the Oracle differential harness "
+              << "and integration of the Analyst benchmark runner.\n"
+              << "The Adversary workload generator is available as adversary_generate "
+              << "and its tests are included in CTest.\n"
+              << "No full-pipeline pass is claimed. Complete the Oracle module and "
+              << "wire the benchmark runner into --all before final release.\n";
     return 3;
 }
 
