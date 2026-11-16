@@ -116,7 +116,7 @@ The repository includes a `requirements.txt` file as a convenient checklist of t
 Open PowerShell in the repository root and run:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass; .\\run.ps1
+Set-ExecutionPolicy -Scope Process Bypass; .\run.ps1
 ```
 
 This automatically configures CMake (using MinGW Make when available), builds the project, and runs the 100,000-element demonstration workload against Structure A, Structure B, and the Oracle.
@@ -124,8 +124,8 @@ This automatically configures CMake (using MinGW Make when available), builds th
 Other modes:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass; .\\run.ps1 -Mode Menu
-Set-ExecutionPolicy -Scope Process Bypass; .\\run.ps1 -Mode Tests
+Set-ExecutionPolicy -Scope Process Bypass; .\run.ps1 -Mode Menu
+Set-ExecutionPolicy -Scope Process Bypass; .\run.ps1 -Mode Tests
 ```
 
 The first run requires the native tools listed above to already be installed and available on PATH. The script does not install a C++ compiler or CMake for you.
