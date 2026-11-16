@@ -83,6 +83,15 @@ add_test(NAME calibration_cli
         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_cli.cmake
 )
 
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/menu_smoke_input.txt"
+    "1\\n${CMAKE_CURRENT_SOURCE_DIR}/tests/cases/architect_sample.txt\\n4\\n4\\n6\\n${CMAKE_CURRENT_BINARY_DIR}/menu_smoke.csv\\n7\\n0\\n")
+add_test(NAME calibration_menu
+    COMMAND ${CMAKE_COMMAND}
+        -DPROGRAM=$<TARGET_FILE:calibration>
+        -DINPUT_FILE=${CMAKE_CURRENT_BINARY_DIR}/menu_smoke_input.txt
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_menu.cmake
+)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     foreach(target IN ITEMS range_structures app_core oracle_core bench_core cs253_adversary
                             adversary_generate calibration contract_smoke structB_test app_test
@@ -95,8 +104,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     endforeach()
 endif()
 
-# This target runs the automated suite. The application --all command remains
-# a separate release gate until benchmark execution is wired into that command.
+# Run the complete automated suite; calibration --all also exercises the
+# sample A/B/Oracle comparison and the integrated benchmark runner.
 add_custom_target(all_checks
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
     DEPENDS calibration contract_smoke structB_test app_test adversary_test
