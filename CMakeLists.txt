@@ -30,7 +30,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 add_test(NAME structB_test COMMAND structB_test)
 
-<<<<<<< Updated upstream
+
 # Member 5: generators preserve pipeline.hpp and do not depend on unfinished owners.
 add_library(cs253_adversary STATIC adversary/module.cpp)
 target_link_libraries(cs253_adversary PUBLIC cs253_contracts)
@@ -60,4 +60,4 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 add_test(NAME oracle_test COMMAND oracle_test)
->>>>>>> Stashed changes
+
