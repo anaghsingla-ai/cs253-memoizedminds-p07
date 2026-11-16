@@ -30,6 +30,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 add_test(NAME structB_test COMMAND structB_test)
 
+<<<<<<< Updated upstream
 # Member 5: generators preserve pipeline.hpp and do not depend on unfinished owners.
 add_library(cs253_adversary STATIC adversary/module.cpp)
 target_link_libraries(cs253_adversary PUBLIC cs253_contracts)
@@ -49,3 +50,14 @@ add_test(NAME adversary_cli COMMAND adversary_generate alternating_negative_gain
 add_test(NAME adversary_cli_invalid COMMAND adversary_generate push_downs 17 64 253 0 EXACT)
 set_tests_properties(adversary_cli_invalid PROPERTIES WILL_FAIL TRUE)
 add_dependencies(all_checks structB_test adversary_test adversary_generate)
+=======
+# Array Oracle tests
+add_executable(oracle_test tests/oracle_test.cpp oracle/module.cpp)
+target_link_libraries(oracle_test PRIVATE cs253_contracts)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(oracle_test PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_test(NAME oracle_test COMMAND oracle_test)
+>>>>>>> Stashed changes
