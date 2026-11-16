@@ -4,8 +4,7 @@ Date: 12 November 2026. Owner: Architect (insert name/GitHub handle).
 
 **Status: awaiting six-member review.** This remains a proposed contract, not evidence that teammates
 have agreed or that the interface is frozen. The application parser, serializer, replay engine and CLI
-are now implemented in this working snapshot. The Oracle, Adversary and Analyst modules remain
-placeholders. No remote Git push or team sign-off is claimed.
+are now implemented in this working snapshot. The Oracle implementation, Adversary generator and Analyst benchmark implementation are present in this merged snapshot. The benchmark runner is not yet integrated into `calibration --all`. No remote Git push or team sign-off is claimed.
 
 ## Implemented by the Architect
 
@@ -13,11 +12,10 @@ placeholders. No remote Git push or team sign-off is claimed.
 - `write_workload()` serializes a valid workload in the same format.
 - `replay()` builds a selected `RangeStructure`, resets counters, times the operation loop, and
   returns query answers, counters and elapsed seconds.
-- `calibration --run PATH --structure A|B|both` replays a workload and reports query results,
-  elapsed time, throughput and counters. `both` compares A/B query aggregates.
-- `calibration --all` runs the available A/B application smoke workload, then exits with status 3
-  and a clear blocker message until the Oracle differential harness, Adversary generators and
-  Analyst benchmark harness are implemented and integrated.
+- `calibration --run PATH --structure A|B|oracle|both` replays a workload and reports query results,
+  elapsed time, throughput and counters. The Oracle selector is available; `both` compares A/B query aggregates.
+- `calibration --all` runs an A/B/Oracle sample smoke comparison, then exits with status 3
+  because the Analyst benchmark campaign is not yet wired into that command.
 - D3 proof is written in `docs/derivations/D3.md` and exported to `D3.pdf`.
 
 ## Existing shared contract facts
@@ -33,20 +31,20 @@ placeholders. No remote Git push or team sign-off is claimed.
 
 | Item | Proposed v1 behavior | Why it matters | Sign-off |
 |---|---|---|---|
-| Before-build `size()` / `mode()` | `size()` returns 0 and `mode()` returns default exact mode; keep `noexcept` | Existing signatures cannot throw; confirm with both structure owners | Pending |
+| Before-build `size()` / `mode()` | Throw `std::logic_error`; declarations and definitions are not `noexcept` | Required by the build-state contract and now implemented/tested | Pending owner sign-off |
 | Before-build `update()` / `query()` | Throw `std::logic_error`, including empty intervals | Prevent unbuilt objects from appearing valid | Pending |
 | Empty range | Update is a no-op; query returns length 0, sum 0, extrema NA after build | Consistency across structures | Pending |
 | Exact-mode arithmetic | Supported workloads avoid signed 64-bit overflow; implementations use checked/wide intermediates | Prevent undefined behavior | Pending |
 | Timing scope | Build and parsing excluded; operation loop timed; output printed afterward | Makes A/B replay timing comparable | Pending |
-| CLI structure selector | `A`, `B`, or `both`; `oracle` becomes available after Oracle integration | Makes current availability explicit | Pending |
+| CLI structure selector | `A`, `B`, `oracle`, or `both`; Oracle selector is available | Makes current availability explicit | Pending owner sign-off |
 
 ## Owner-specific review requests
 
 - **Structure A:** confirm empty-range behavior, before-build semantics and exact arithmetic bounds.
 - **Structure B:** confirm range/mode conventions, reset behavior, counters and before-build semantics.
-- **Oracle:** supply independent array arithmetic, invariant access and differential/shrinking harness.
+- **Oracle:** review independent array arithmetic, invariant access and differential/shrinking harness.
 - **Adversary:** supply reproducible workload generators and save generated `CS253_V1` workloads.
-- **Analyst:** supply benchmark harness, CSV output, width sweep and documented counter units.
+- **Analyst:** review benchmark harness, CSV output, width sweep and documented counter units; coordinate `--all` integration.
 - **Architect:** maintain parser/replay/CLI, D3 derivation and integration after owner modules arrive.
 
 ## Sign-off record

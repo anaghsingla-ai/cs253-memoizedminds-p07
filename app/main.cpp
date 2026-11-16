@@ -1,4 +1,5 @@
 #include "cs253/pipeline.hpp"
+#include "cs253/array_oracle.hpp"
 #include "cs253/lazy_segment_tree.hpp"
 #include "cs253/sqrt_decomposition.hpp"
 
@@ -23,7 +24,7 @@ void print_usage(std::ostream& out) {
         << "Usage:\n"
         << "  calibration --help\n"
         << "  calibration --status\n"
-        << "  calibration --run WORKLOAD --structure A|B|both\n"
+        << "  calibration --run WORKLOAD --structure A|B|oracle|both\n"
         << "  calibration --all\n\n"
         << "WORKLOAD uses the CS253_V1 text format. Ranges are zero-based [begin,end).\n"
         << "A = lazy segment tree; B = square-root decomposition; both runs and compares A/B.\n"
@@ -33,8 +34,8 @@ void print_usage(std::ostream& out) {
 void print_status() {
     std::cout
         << "parser=ready replay=ready cli=ready structure_A=ready structure_B=ready\n"
-        << "oracle=missing adversary=ready benchmarks=implemented_not_integrated\n"
-        << "full_pipeline=blocked_until_oracle_and_benchmark_runner_integration\n";
+        << "oracle=ready differential_harness=ready adversary=ready benchmarks=implemented\n"
+        << "full_pipeline=blocked_until_benchmark_runner_integration\n";
 }
 
 void print_optional_value(const std::optional<Value>& value) {
@@ -111,6 +112,11 @@ int run_selected(const std::string& path, const std::string& selected) {
         print_result("B", replay(structure, workload), workload);
         return 0;
     }
+    if (selected == "oracle") {
+        ArrayOracle structure;
+        print_result("ORACLE", replay(structure, workload), workload);
+        return 0;
+    }
     if (selected == "both") {
         LazySegmentTree a;
         SqrtDecomposition b;
@@ -126,34 +132,32 @@ int run_selected(const std::string& path, const std::string& selected) {
         return 0;
     }
 
-    if (selected == "oracle") {
-        throw std::invalid_argument(
-            "The Oracle module is not implemented in this repository snapshot; choose A, B or both.");
-    }
-    throw std::invalid_argument("Unknown structure '" + selected + "'; choose A, B or both.");
+    throw std::invalid_argument("Unknown structure '" + selected + "'; choose A, B, oracle or both.");
 }
 
 int run_available_all() {
     const Workload workload = load_workload(CS253_SAMPLE_WORKLOAD_PATH);
     LazySegmentTree a;
     SqrtDecomposition b;
+    ArrayOracle oracle;
     const ReplayResult result_a = replay(a, workload);
     const ReplayResult result_b = replay(b, workload);
+    const ReplayResult result_oracle = replay(oracle, workload);
 
     print_result("A", result_a, workload);
     print_result("B", result_b, workload);
-    if (!same_answers(result_a.answers, result_b.answers)) {
-        std::cerr << "AVAILABLE_APP_SMOKE FAIL: A/B query answers differ.\n";
+    print_result("ORACLE", result_oracle, workload);
+    if (!same_answers(result_a.answers, result_b.answers) ||
+        !same_answers(result_a.answers, result_oracle.answers)) {
+        std::cerr << "AVAILABLE_APP_SMOKE FAIL: A/B/Oracle query answers differ.\n";
         return 4;
     }
 
     std::cout << "AVAILABLE_APP_SMOKE PASS\n"
-              << "BLOCKED: full --all requires the Oracle differential harness "
-              << "and integration of the Analyst benchmark runner.\n"
-              << "The Adversary workload generator is available as adversary_generate "
-              << "and its tests are included in CTest.\n"
-              << "No full-pipeline pass is claimed. Complete the Oracle module and "
-              << "wire the benchmark runner into --all before final release.\n";
+              << "Oracle implementation and differential harness are available and tested.\n"
+              << "Adversary generator and Analyst benchmark implementation are available.\n"
+              << "BLOCKED: benchmark runner is not yet wired into calibration --all.\n"
+              << "No full-pipeline pass is claimed until the benchmark campaign is integrated.\n";
     return 3;
 }
 

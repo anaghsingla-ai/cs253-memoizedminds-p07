@@ -34,8 +34,8 @@ endforeach()
 
 execute_process(COMMAND "${PROGRAM}" --run "${WORKLOAD}" --structure oracle
   RESULT_VARIABLE oracle_code OUTPUT_VARIABLE oracle_out ERROR_VARIABLE oracle_err)
-if(oracle_code EQUAL 0 OR NOT oracle_err MATCHES "Oracle module is not implemented")
-  message(FATAL_ERROR "Unavailable Oracle must fail explicitly: ${oracle_err}${oracle_out}")
+if(NOT oracle_code EQUAL 0 OR NOT oracle_out MATCHES "STRUCTURE ORACLE")
+  message(FATAL_ERROR "Oracle selector failed: ${oracle_err}${oracle_out}")
 endif()
 
 if(DEFINED MODULAR_WORKLOAD)
@@ -65,7 +65,7 @@ endif()
 execute_process(COMMAND "${PROGRAM}" --all
   RESULT_VARIABLE all_code OUTPUT_VARIABLE all_out ERROR_VARIABLE all_err)
 if(NOT all_code EQUAL 3 OR NOT all_out MATCHES "AVAILABLE_APP_SMOKE PASS" OR
-   NOT all_out MATCHES "BLOCKED: full --all requires")
+   NOT all_out MATCHES "BLOCKED: benchmark runner")
   message(FATAL_ERROR "--all must pass available smoke checks and report blockers: ${all_err}${all_out}")
 endif()
 
