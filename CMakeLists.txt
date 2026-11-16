@@ -63,12 +63,9 @@ endif()
 
 add_test(NAME structB_test COMMAND structB_test)
 
-<<<<<<< HEAD
 
 # Member 5: generators preserve pipeline.hpp and do not depend on unfinished owners.
-=======
 # Member 5: Adversarial generators
->>>>>>> 1b76569 (Added differential_test.cpp and updated module.cpp)
 add_library(cs253_adversary STATIC adversary/module.cpp)
 target_link_libraries(cs253_adversary PUBLIC cs253_contracts)
 
@@ -109,10 +106,6 @@ add_test(
 set_tests_properties(adversary_cli_invalid PROPERTIES WILL_FAIL TRUE)
 
 add_dependencies(all_checks structB_test adversary_test adversary_generate)
-<<<<<<< HEAD
-# Array Oracle tests
-add_executable(oracle_test tests/oracle_test.cpp oracle/module.cpp)
-=======
 
 # Array Oracle and differential testing
 add_executable(oracle_test
@@ -122,7 +115,6 @@ add_executable(oracle_test
     src/structB/module.cpp
 )
 
->>>>>>> 1b76569 (Added differential_test.cpp and updated module.cpp)
 target_link_libraries(oracle_test PRIVATE cs253_contracts)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
