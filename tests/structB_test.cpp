@@ -229,11 +229,82 @@ void test_errors_and_edges() {
     CHECK(threw);
 }
 
+// Counter units as documented in DESIGN.md, on n = 9 with automatic block size 3.
+void test_counters() {
+    set_sqrt_block_size(0);
+    SqrtDecomposition s;
+    s.build({1, 2, 3, 4, 5, 6, 7, 8, 9}, Mode::exact_extrema);
+    s.update({1, 8}, {1, 5});  // block 0 partial, block 1 full, block 2 partial
+    Counters c = s.counters();
+    CHECK(c.full_blocks == 1 && c.partial_elements == 6 && c.tag_compositions == 1);
+    CHECK(c.aggregate_merges == 0 && c.nodes_visited == 0 && c.push_downs == 0);
+    s.reset_counters();
+    s.query({0, 9});  // three full blocks, two merges
+    c = s.counters();
+    CHECK(c.full_blocks == 3 && c.partial_elements == 0 && c.aggregate_merges == 2);
+    s.reset_counters();
+    s.query({1, 5});  // two elements of block 0, two elements of block 1
+    c = s.counters();
+    CHECK(c.full_blocks == 0 && c.partial_elements == 4 && c.aggregate_merges == 1);
+    CHECK(c.tag_compositions == 0);
+    CHECK(s.check_invariants().ok);
+}
+
+// A full-block update that overflows must throw before changing that block.
+void test_overflow_leaves_block_unchanged() {
+    set_sqrt_block_size(0);
+    SqrtDecomposition s;
+    s.build({INT64_MAX - 5, 7, 8, 9}, Mode::exact_extrema);  // block size 2
+    bool threw = false;
+    try { s.update({0, 2}, {1, 10}); } catch (const std::overflow_error&) { threw = true; }
+    CHECK(threw);
+    Aggregate q = s.query({0, 2});
+    CHECK(*q.maximum == INT64_MAX - 5 && *q.minimum == 7);
+    CHECK(s.check_invariants().ok);
+
+    // The other block is unaffected and the structure stays usable.
+    s.update({2, 4}, {-1, 0});
+    q = s.query({2, 4});
+    CHECK(*q.minimum == -9 && *q.maximum == -8);
+}
+
+// Large magnitudes (near +-2^61) exercise the 128-bit sum and extrema paths in exact mode.
+void test_large_values() {
+    for (std::size_t b : {0u, 1u, 5u}) {
+        set_sqrt_block_size(b);
+        std::mt19937_64 g(99 + b);
+        const std::size_t n = 200;
+        std::vector<Value> init(n);
+        for (auto& x : init) x = (Value)(g() % (1ULL << 62)) - (Value)(1LL << 61);
+        SqrtDecomposition s;
+        s.build(init, Mode::exact_extrema);
+        RefArray ref(init, Mode::exact_extrema);
+        std::size_t bs = b == 0 ? 15 : b;
+        for (int i = 0; i < 2000; ++i) {
+            Range r = make_range(g, n, bs);
+            if (g() % 2) {
+                static const Value gains[] = {-1, 0, 1};
+                AffineTag t{gains[g() % 3], (Value)(g() % 2001) - 1000};
+                s.update(r, t);
+                ref.update(r, t);
+            } else {
+                CHECK(same(s.query(r), ref.query(r)));
+            }
+        }
+        CHECK(s.check_invariants().ok);
+        CHECK(same(s.query({0, n}), ref.query({0, n})));
+    }
+    set_sqrt_block_size(0);
+}
+
 }  // namespace
 
 int main() {
     test_contract_examples();
     test_errors_and_edges();
+    test_counters();
+    test_overflow_leaves_block_unchanged();
+    test_large_values();
 
     int runs = 0;
     for (Mode m : {Mode::exact_extrema, Mode::modular_sum}) {
