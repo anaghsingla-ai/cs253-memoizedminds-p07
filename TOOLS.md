@@ -35,3 +35,12 @@ Authored the D3 proof in `docs/derivations/D3.md` and exported `D3.pdf` using Re
 Structure B implementation files were not edited. The work was built and tested locally; the team must
 review the CLI contract and proof, insert the named author's name, obtain six-owner interface approval,
 and complete the missing owner modules before claiming final pipeline completion.
+
+## Repository integration assistance — 17 November 2026
+
+OpenAI ChatGPT assisted with read-only inspection of the remote branch histories and CI logs,
+creating pre-integration safety refs, identifying and repairing the malformed Structure B
+conflict-resolution edit, adding terminal menu and benchmark integration, updating regression
+checks and reconciling report statistics against the committed CSV. GitHub Actions was used
+to compile and run the CTest suite after changes. The repository owner/team must review the
+resulting code and retain responsibility for the submitted implementation and derivations.
