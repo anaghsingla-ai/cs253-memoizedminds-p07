@@ -84,7 +84,7 @@ add_test(NAME calibration_cli
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/menu_smoke_input.txt"
-    "1\\n${CMAKE_CURRENT_SOURCE_DIR}/tests/cases/architect_sample.txt\\n4\\n4\\n6\\n${CMAKE_CURRENT_BINARY_DIR}/menu_smoke.csv\\n7\\n0\\n")
+    "1\n${CMAKE_CURRENT_SOURCE_DIR}/tests/cases/architect_sample.txt\n4\n4\n6\n${CMAKE_CURRENT_BINARY_DIR}/menu_smoke.csv\n7\n0\n")
 add_test(NAME calibration_menu
     COMMAND ${CMAKE_COMMAND}
         -DPROGRAM=$<TARGET_FILE:calibration>
