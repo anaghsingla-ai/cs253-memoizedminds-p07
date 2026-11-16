@@ -8,8 +8,7 @@ Source: CS253_MA253_Lab_Projects.docx.pdf, common rules pp. 1–4 and Project 7 
 Evaluation: **17 November 2026**. Submission: **21 November 2026**.
 
 ## Current status
-Merged snapshot: Structure A, Structure B, the Architect parser/serializer/replay CLI, the independent Array Oracle, the differential/shrinking harness, the Adversary generator, and the Analyst benchmark implementation are included. The benchmark runner is not yet wired into `calibration --all`. The sample workload is `tests/cases/architect_sample.txt`.
-The Release build and all 11 CTest tests pass. The differential harness checks one million operations in EXACT mode and one million in MODULAR mode. A benchmark smoke test validates the Analyst API and CSV output; a full width-sweep benchmark campaign is still outstanding.
+Merged snapshot: Structure A, Structure B, the Architect parser/serializer/replay CLI, the independent Array Oracle, the differential/shrinking harness, the Adversary generator, and the Analyst benchmark implementation are included. The terminal workbench supports loading and saving CS253_V1 workloads, generating adversarial workloads, running A/B/Oracle, differential testing against the independent Array Oracle, and five-repetition A/B benchmarks exported as CSV. `calibration --all` runs the sample A/B/Oracle comparison and a benchmark smoke campaign. The recorded 100,000-element width sweep is in `results/raw/width_sweep.csv`; it is distinct from the one-million-operation differential correctness run.
 Architect v1 interface review is documented in [docs/ARCHITECT_REVIEW.md](docs/ARCHITECT_REVIEW.md), but **not frozen until the six owners sign off**.
 No team member names or personal role assignments have been assumed.
 
@@ -49,8 +48,8 @@ One-command full workflow entry point:
 bash scripts/run_all.sh
 ```
 The build and tests run first. `calibration --all` compares the sample workload across A, B and the Oracle,
-then exits with code 3 because the full Analyst benchmark campaign is not yet connected to that command.
-This is an intentional release gate, not a full-pipeline pass. The equivalent CMake target `all_checks`
+then runs the configured five-repetition A/B benchmark and emits CSV to standard output. The recorded
+wide-range campaign remains available under `results/raw/`. The equivalent CMake target `all_checks`
 runs the automated test suite.
 
 ## Team workflow and release
