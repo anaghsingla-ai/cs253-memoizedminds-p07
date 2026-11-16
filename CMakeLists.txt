@@ -50,7 +50,6 @@ add_test(NAME adversary_cli COMMAND adversary_generate alternating_negative_gain
 add_test(NAME adversary_cli_invalid COMMAND adversary_generate push_downs 17 64 253 0 EXACT)
 set_tests_properties(adversary_cli_invalid PROPERTIES WILL_FAIL TRUE)
 add_dependencies(all_checks structB_test adversary_test adversary_generate)
-=======
 # Array Oracle tests
 add_executable(oracle_test tests/oracle_test.cpp oracle/module.cpp)
 target_link_libraries(oracle_test PRIVATE cs253_contracts)
