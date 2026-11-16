@@ -4,7 +4,7 @@
 #include "cs253/sqrt_config.hpp"
 #include <algorithm>
 #include <cmath>
-#include <limits>
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 
@@ -12,30 +12,38 @@ namespace cs253 {
 
 namespace {
 
-using Wide = __int128_t;
+// 128-bit integer: big enough for the product of two int64 values, so we can
+// compute a*x + b first and then check or reduce the result.
+using int128 = __int128_t;
 
-std::size_t g_block_setting = 0;
+std::size_t chosen_block_size = 0;  // 0 means automatic: ceil(sqrt(n))
 
-Residue norm(Wide x) {
+// x mod P, always in [0, P) even when x is negative.
+Residue mod_p(int128 x) {
     x %= modulus;
     if (x < 0) x += modulus;
-    return static_cast<Residue>(x);
+    return (Residue)x;
 }
 
-Value checked(Wide x) {
-    if (x < std::numeric_limits<Value>::min() || x > std::numeric_limits<Value>::max())
-        throw std::overflow_error("exact affine arithmetic overflow");
-    return static_cast<Value>(x);
+// Exact mode must stay inside int64. Throw instead of silently wrapping around.
+Value fit_int64(int128 x) {
+    if (x < INT64_MIN || x > INT64_MAX)
+        throw std::overflow_error("SqrtDecomposition: value does not fit in int64");
+    return (Value)x;
 }
 
-bool is_identity(const AffineTag& t) { return t.a == 1 && t.b == 0; }
+// Exact mode only allows gains -1, 0 and 1.
+bool allowed_exact_gain(Value a) { return a == -1 || a == 0 || a == 1; }
 
-bool exact_gain_ok(Value a) { return a == -1 || a == 0 || a == 1; }
+void report_problem(InvariantReport& report, const std::string& message) {
+    report.ok = false;
+    report.violations.push_back(message);
+}
 
 }
 
-void set_sqrt_block_size(std::size_t block_size) noexcept { g_block_setting = block_size; }
-std::size_t sqrt_block_size_setting() noexcept { return g_block_setting; }
+void set_sqrt_block_size(std::size_t block_size) noexcept { chosen_block_size = block_size; }
+std::size_t sqrt_block_size_setting() noexcept { return chosen_block_size; }
 
 struct SqrtDecomposition::Impl {
 
@@ -51,11 +59,11 @@ struct SqrtDecomposition::Impl {
     std::size_t n = 0, bsize = 1, nblocks = 0;
     std::vector<Value> raw;
     std::vector<Block> blocks;
-    Counters cnt;
+    Counters counters;
 
-    bool exact() const { return md == Mode::exact_extrema; }
-    std::size_t bstart(std::size_t k) const { return k * bsize; }
-    std::size_t bend(std::size_t k) const { return std::min(n, (k + 1) * bsize); }
+    bool exact() const { return mode == Mode::exact_extrema; }
+    std::size_t block_start(std::size_t k) const { return k * block_size; }
+    std::size_t block_end(std::size_t k) const { return std::min(n, (k + 1) * block_size); }  // last block may be shorter
 
 
     AffineTag compose(AffineTag newer, AffineTag older) {
@@ -81,6 +89,7 @@ struct SqrtDecomposition::Impl {
         } else {
             omn = omx = b;
         }
+        blk.sum = mod_p(sum);
     }
 
 
@@ -105,7 +114,7 @@ struct SqrtDecomposition::Impl {
         } else {
             for (std::size_t i = lo; i < hi; ++i) s += raw[i];
         }
-    }
+        if (b == 0) b = 1;  // empty array
 
     void build(const std::vector<Value>& initial, Mode mode) {
         built = false;
@@ -122,24 +131,19 @@ struct SqrtDecomposition::Impl {
         std::size_t nb = nn == 0 ? 0 : (nn + bs - 1) / bs;
         std::vector<Block> bl(nb);
 
-        raw = std::move(r);
-        blocks = std::move(bl);
-        n = nn; bsize = bs; nblocks = nb; md = mode;
-        for (std::size_t k = 0; k < nblocks; ++k) {
-            Wide s; Value mn = 0, mx = 0;
-            scan(bstart(k), bend(k), s, mn, mx);
-            blocks[k].sum = norm(s);
-            if (exact()) { blocks[k].mn = mn; blocks[k].mx = mx; }
-        }
-        cnt = {};
+        raw.swap(new_raw);
+        blocks.swap(new_blocks);
+        n = size;
+        block_size = b;
+        mode = new_mode;
+        for (std::size_t k = 0; k < blocks.size(); k++) recompute_block(k);
+        counters = Counters();
         built = true;
     }
 
-    void require_built() const {
-        if (!built) throw std::logic_error("SqrtDecomposition: build() has not been called");
-    }
-    void check_range(Range r, const char* what) const {
-        if (r.begin > r.end || r.end > n) throw std::out_of_range(what);
+    void check_built_and_range(Range r, const std::string& operation) const {
+        if (!built) throw std::logic_error("SqrtDecomposition::" + operation + ": build() has not been called");
+        if (r.begin > r.end || r.end > n) throw std::out_of_range("SqrtDecomposition::" + operation + ": invalid range");
     }
 
 
@@ -171,10 +175,18 @@ struct SqrtDecomposition::Impl {
             if (x < mn) mn = x;
             if (x > mx) mx = x;
         }
-        cnt.partial_elements += be - bs;
-        B.a = 1; B.b = 0;
-        B.sum = norm(s);
-        if (exact()) { B.mn = mn; B.mx = mx; }
+
+        // New pending tag: the old tag acts first, then the new one.
+        //   a*(old_a*x + old_b) + b = (a*old_a)*x + (a*old_b + b)
+        Value new_a = apply(a, 0, blk.a);
+        Value new_b = apply(a, b, blk.b);
+
+        // Everything is computed before writing, so an overflow above leaves the block unchanged.
+        blk.sum = new_sum;
+        blk.mn = new_mn;
+        blk.mx = new_mx;
+        blk.a = new_a;
+        blk.b = new_b;
     }
 
 
@@ -191,55 +203,73 @@ struct SqrtDecomposition::Impl {
         return out;
     }
 
-    void update(Range r, AffineTag t) {
-        require_built();
-        check_range(r, "SqrtDecomposition::update: invalid range");
-        if (exact() && !exact_gain_ok(t.a))
+    void update(Range r, AffineTag tag) {
+        check_built_and_range(r, "update");
+        Value a = tag.a, b = tag.b;
+        if (exact() && !allowed_exact_gain(a))
             throw std::invalid_argument("SqrtDecomposition::update: exact_extrema requires gain in {-1,0,1}");
         if (r.begin == r.end) return;
-        if (!exact()) { t.a = norm(t.a); t.b = norm(t.b); }
-        std::size_t kl = r.begin / bsize, kr = (r.end - 1) / bsize;
-        for (std::size_t k = kl; k <= kr; ++k) {
-            std::size_t lo = std::max(r.begin, bstart(k)), hi = std::min(r.end, bend(k));
-            if (lo == bstart(k) && hi == bend(k)) full_update(k, t);
-            else partial_update(k, lo, hi, t);
+        if (!exact()) {  // any int64 is allowed; reduce it mod P first
+            a = mod_p(a);
+            b = mod_p(b);
+        }
+
+        std::size_t first = r.begin / block_size;
+        std::size_t last = (r.end - 1) / block_size;
+        for (std::size_t k = first; k <= last; k++) {
+            std::size_t lo = std::max(r.begin, block_start(k));
+            std::size_t hi = std::min(r.end, block_end(k));
+            if (lo == block_start(k) && hi == block_end(k)) full_update(k, a, b);
+            else partial_update(k, lo, hi, a, b);
         }
     }
 
     Aggregate query(Range r) {
-        require_built();
-        check_range(r, "SqrtDecomposition::query: invalid range");
-        if (r.begin == r.end) return {};
-        Aggregate acc;
-        bool first = true;
-        auto fold = [&](const Aggregate& part) {
-            if (first) { acc = part; first = false; return; }
-            ++cnt.aggregate_merges;
-            acc.length += part.length;
-            acc.sum_mod = norm(Wide(acc.sum_mod) + part.sum_mod);
-            if (exact()) {
-                acc.minimum = std::min(*acc.minimum, *part.minimum);
-                acc.maximum = std::max(*acc.maximum, *part.maximum);
-            }
-        };
-        std::size_t kl = r.begin / bsize, kr = (r.end - 1) / bsize;
-        for (std::size_t k = kl; k <= kr; ++k) {
-            std::size_t lo = std::max(r.begin, bstart(k)), hi = std::min(r.end, bend(k));
-            if (lo == bstart(k) && hi == bend(k)) {
-                ++cnt.full_blocks;
-                const Block& B = blocks[k];
-                Aggregate part;
-                part.length = hi - lo;
-                part.sum_mod = B.sum;
-                if (exact()) { part.minimum = B.mn; part.maximum = B.mx; }
-                fold(part);
+        check_built_and_range(r, "query");
+        Aggregate result;
+        if (r.begin == r.end) return result;  // length 0, sum 0, no min/max
+
+        Residue sum = 0;
+        Value mn = INT64_MAX, mx = INT64_MIN;
+        std::size_t first = r.begin / block_size;
+        std::size_t last = (r.end - 1) / block_size;
+        for (std::size_t k = first; k <= last; k++) {
+            std::size_t lo = std::max(r.begin, block_start(k));
+            std::size_t hi = std::min(r.end, block_end(k));
+            const Block& blk = blocks[k];
+
+            if (lo == block_start(k) && hi == block_end(k)) {
+                // Whole block: the summary already includes the tag. O(1).
+                counters.full_blocks++;
+                sum = (sum + blk.sum) % modulus;
+                mn = std::min(mn, blk.mn);
+                mx = std::max(mx, blk.mx);
             } else {
-                fold(partial_query(k, lo, hi));
+                // Part of a block: compute each real value a*raw + b. O(hi - lo).
+                counters.partial_elements += hi - lo;
+                int128 part_sum = 0;
+                for (std::size_t i = lo; i < hi; i++) {
+                    Value v = apply(blk.a, blk.b, raw[i]);
+                    part_sum += v;
+                    mn = std::min(mn, v);
+                    mx = std::max(mx, v);
+                }
+                sum = mod_p(sum + part_sum);
             }
         }
-        return acc;
+        counters.aggregate_merges += last - first;  // block results combined after the first one
+
+        result.length = r.end - r.begin;
+        result.sum_mod = sum;
+        if (exact()) {
+            result.minimum = mn;
+            result.maximum = mx;
+        }
+        return result;
     }
 
+    // Recompute every block from its raw values and tag, and compare with what is stored.
+    // Only reads: it never fixes anything and never changes the counters.
     InvariantReport check() const {
         InvariantReport rep{true, {}};
         auto bad = [&](std::string m) { rep.ok = false; rep.violations.push_back(std::move(m)); };
@@ -273,7 +303,41 @@ struct SqrtDecomposition::Impl {
             if (norm(s) != B.sum) bad("block sum != recomputed logical sum" + tag);
             if (exact() && (B.mn != mn || B.mx != mx)) bad("block extrema != recomputed logical extrema" + tag);
         }
-        return rep;
+        if (raw.size() != n) report_problem(report, "raw size != n");
+        if (blocks.size() != (n + block_size - 1) / block_size) {
+            report_problem(report, "block count mismatch");
+            return report;
+        }
+
+        for (std::size_t k = 0; k < blocks.size(); k++) {
+            const Block& blk = blocks[k];
+            std::string where = " in block " + std::to_string(k);
+            if (blk.sum < 0 || blk.sum >= modulus) report_problem(report, "sum not canonical" + where);
+            if (exact() && !allowed_exact_gain(blk.a)) report_problem(report, "pending gain outside {-1,0,1}" + where);
+            if (!exact() && (blk.a < 0 || blk.a >= modulus || blk.b < 0 || blk.b >= modulus))
+                report_problem(report, "pending tag not canonical" + where);
+
+            int128 sum = 0, mn = INT64_MAX, mx = INT64_MIN;
+            bool overflow = false;
+            for (std::size_t i = block_start(k); i < block_end(k); i++) {
+                if (!exact() && (raw[i] < 0 || raw[i] >= modulus)) report_problem(report, "raw residue not canonical" + where);
+                int128 real = (int128)blk.a * raw[i] + blk.b;
+                if (exact() && (real < INT64_MIN || real > INT64_MAX)) {
+                    overflow = true;
+                    break;
+                }
+                sum += real;
+                if (real < mn) mn = real;
+                if (real > mx) mx = real;
+            }
+            if (overflow) {
+                report_problem(report, "real value overflows int64" + where);
+                continue;
+            }
+            if (mod_p(sum) != blk.sum) report_problem(report, "block sum != recomputed sum" + where);
+            if (exact() && (blk.mn != mn || blk.mx != mx)) report_problem(report, "block min/max != recomputed min/max" + where);
+        }
+        return report;
     }
 };
 
@@ -285,8 +349,8 @@ std::size_t SqrtDecomposition::size() const { impl_->require_built(); return imp
 Mode SqrtDecomposition::mode() const { impl_->require_built(); return impl_->md; }
 void SqrtDecomposition::update(Range range, AffineTag tag) { impl_->update(range, tag); }
 Aggregate SqrtDecomposition::query(Range range) { return impl_->query(range); }
-Counters SqrtDecomposition::counters() const noexcept { return impl_->cnt; }
-void SqrtDecomposition::reset_counters() noexcept { impl_->cnt = {}; }
+Counters SqrtDecomposition::counters() const noexcept { return impl_->counters; }
+void SqrtDecomposition::reset_counters() noexcept { impl_->counters = {}; }
 InvariantReport SqrtDecomposition::check_invariants() const { return impl_->check(); }
 
 }

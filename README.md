@@ -20,7 +20,7 @@ No team member names or personal role assignments have been assumed.
 | TBD 2 | Structure B | src/structB/, sqrt_decomposition.hpp | D2 composition, sum, extrema |
 | TBD 3 | Architect | app/, shared contracts, INTERFACE.md | D3 modulo impossibility and amortised variant |
 | TBD 4 | Oracle | oracle/, array_oracle.hpp, differential tests, invariant checks | D4 O(log n) visited nodes |
-| TBD 5 | Adversary | adversary/ | D5 maximum push-down sequences |
+| Anagh Singla | Adversary | adversary/ | D5 maximum push-down sequences |
 | TBD 6 | Analyst | bench/, results/, REPORT.md | D6 block size and cost models |
 
 Read [INTERFACE.md](INTERFACE.md) before implementation, then each module's TASKS.md.

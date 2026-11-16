@@ -234,6 +234,9 @@ void test_errors_and_edges() {
 int main() {
     test_contract_examples();
     test_errors_and_edges();
+    test_counters();
+    test_overflow_leaves_block_unchanged();
+    test_large_values();
 
     int runs = 0;
     for (Mode m : {Mode::exact_extrema, Mode::modular_sum}) {
