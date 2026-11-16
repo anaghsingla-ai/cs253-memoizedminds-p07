@@ -248,7 +248,7 @@ int run_menu() {
                 const AdversarialTarget target = ask_target();
                 config.elements = ask_integer<std::size_t>("Element count: ", 0, 5000000);
                 config.operations = ask_integer<std::size_t>("Operation count: ", 0, 5000000);
-                config.seed = ask_integer<Seed>("Seed: ", 0, std::numeric_limits<Seed>::max());
+                config.seed = ask_integer<Seed>("Seed: ", 0, static_cast<Seed>(std::numeric_limits<std::int64_t>::max()));
                 config.range_width = ask_integer<std::size_t>("Range width: ", 0,
                                                                std::max<std::size_t>(1, config.elements));
                 config.mode = ask_mode();
