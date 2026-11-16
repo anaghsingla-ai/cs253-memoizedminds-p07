@@ -143,6 +143,7 @@ void print_result(const char* name, const ReplayResult& result,
     std::cout << "\n============================================================\n"
               << "  " << structure_label(name) << "\n"
               << "============================================================\n"
+              << "  STRUCTURE " << (std::string(name) == "ORACLE" ? "ORACLE" : name) << "\n"
               << "  Mode: " << mode_label(workload.mode)
               << "   |   Elements: " << workload.initial.size()
               << "   |   Operations: " << workload.operations.size()
