@@ -8,10 +8,12 @@ Source: CS253_MA253_Lab_Projects.docx.pdf, common rules pp. 1–4 and Project 7 
 Evaluation: **17 November 2026**. Submission: **21 November 2026**.
 
 ## Current status
-Repository scaffold only. No structure, oracle, generator, replay or benchmark is implemented.
-CMake Release build and CTest scaffold checks pass. These checks do not establish algorithm correctness.
-Concrete classes are declarations only: instantiating one will fail to link until its owner implements it.
-No team member names or personal role assignments have been assumed.
+Structure A and Structure B implementations are present. Member 5's adversarial
+generators, export CLI and module tests are implemented; see [adversary/README.md](adversary/README.md).
+The application replay, production Oracle/differential harness and Analyst benchmark
+remain unfinished. The calibration --all entry point still returns its explicit unfinished status.
+The adversary tests use their own independent test-only array reference.
+Other team member names remain to be filled in by the team.
 
 ## Six owners (fill names and freeze at first checkpoint)
 | Member | Role | Owned implementation | Derivation |
@@ -20,7 +22,7 @@ No team member names or personal role assignments have been assumed.
 | TBD 2 | Structure B | src/structB/, sqrt_decomposition.hpp | D2 composition, sum, extrema |
 | TBD 3 | Architect | app/, shared contracts, INTERFACE.md | D3 modulo impossibility and amortised variant |
 | TBD 4 | Oracle | oracle/, array_oracle.hpp, differential tests, invariant checks | D4 O(log n) visited nodes |
-| TBD 5 | Adversary | adversary/ | D5 maximum push-down sequences |
+| Anagh Singla | Adversary | adversary/ | D5 maximum push-down sequences |
 | TBD 6 | Analyst | bench/, results/, REPORT.md | D6 block size and cost models |
 
 Read [INTERFACE.md](INTERFACE.md) before implementation, then each module's TASKS.md.
