@@ -45,6 +45,25 @@ It validates generation only; timings belong to the Analyst. On differential
 failure, `adversary_failure.txt` preserves the full replay and stderr records
 the seed and operation index. Member 4 retains ownership of shrinking.
 
-See `docs/derivations/D5.md` and `docs/derivations/D5.pdf` for the proof.
+See `docs/derivations/D5.md` and `docs/derivations/D5_250001006.pdf` for the proof.
 Record the generator commit with saved
 workloads. No benchmark crossover or throughput is claimed by these generators.
+
+## Review on 16 November 2026
+
+Owner: Anagh Singla, roll number 250001006. All three Project 7 adversarial
+families are implemented; the width sweep is an additional family. The generator
+uses ordinary loops, a switch for each target, and the existing shared structs.
+`maximum_push_range` chooses the probe; `deepest_boundary` follows left children
+until two leaves remain. No teammate algorithm is changed.
+
+The C++ tests also check partial **updates**, after re-priming, against the same
+`2*h-1` maximum. Generation at one million elements and one million operations is
+checked in all four families and both modes. This is generation validation,
+not evidence that the whole team's unfinished pipeline runs at that scale.
+
+The final derivation is `docs/derivations/D5_250001006.pdf`; its Markdown source
+is `docs/derivations/D5.md`. To regenerate it, install ReportLab and run
+`python docs/derivations/export_D5.py` (not needed to build the C++ project).
+The team must still merge this branch through a pull request approved by another
+member, and include the adversarial measurements in the final team report.

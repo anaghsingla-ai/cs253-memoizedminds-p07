@@ -123,6 +123,25 @@ void exact_push_counts() {
             }
         require(got == best, "push range not maximal for n=" + std::to_string(n));
     }
+    // A partial UPDATE should hit the same maximum as a partial query.
+    // Re-prime the tree before each operation so pending tags cannot run out.
+    for (unsigned h = 1; h <= 14; ++h) {
+        const std::size_t n = std::size_t{1} << h;
+        GeneratorConfig config;
+        config.elements = n;
+        config.operations = 2;
+        const auto workload = generate(AdversarialTarget::push_downs, config);
+        const auto range = std::get<Query>(workload.operations[1]).range;
+        LazySegmentTree tree;
+        tree.build(workload.initial, config.mode);
+        for (int repeat = 0; repeat < 3; ++repeat) {
+            tree.update({0, n}, {0, 7});
+            tree.reset_counters();
+            tree.update(range, {-1, 3});
+            require(tree.counters().push_downs == 2 * h - 1,
+                    "partial update missed the maximum push count");
+        }
+    }
     for (unsigned h = 0; h <= 14; ++h) {
         const std::size_t n = std::size_t{1} << h;
         GeneratorConfig c; c.elements = n; c.operations = 10;
