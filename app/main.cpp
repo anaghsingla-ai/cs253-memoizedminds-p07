@@ -4,7 +4,11 @@
 #include "cs253/sqrt_decomposition.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cmath>
+#include <cstdio>
+#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -13,7 +17,16 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
+#include <utility>
 #include <vector>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 #ifndef CS253_SAMPLE_WORKLOAD_PATH
 #define CS253_SAMPLE_WORKLOAD_PATH "tests/cases/architect_sample.txt"
@@ -21,6 +34,80 @@
 
 namespace {
 using namespace cs253;
+
+bool enable_terminal_colors(FILE* stream) {
+#ifdef _WIN32
+    const intptr_t handle_value = _get_osfhandle(_fileno(stream));
+    if (handle_value == -1) return false;
+    HANDLE handle = reinterpret_cast<HANDLE>(handle_value);
+    DWORD mode = 0;
+    if (!GetConsoleMode(handle, &mode)) return false;
+    return SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
+#else
+    return isatty(fileno(stream)) != 0;
+#endif
+}
+
+bool stdout_is_terminal() {
+    static const bool enabled = enable_terminal_colors(stdout);
+    return enabled;
+}
+
+bool stderr_is_terminal() {
+    static const bool enabled = enable_terminal_colors(stderr);
+    return enabled;
+}
+
+void print_status(const char* label, const std::string& message) {
+    const bool terminal = stdout_is_terminal();
+    const char* color = std::string(label) == "PASS" ? "\033[32m" :
+                        std::string(label) == "FAIL" ? "\033[31m" :
+                        "\033[33m";
+    if (terminal) std::cout << color;
+    std::cout << "[" << label << "]";
+    if (terminal) std::cout << "\033[0m";
+    std::cout << " " << message << '\n';
+}
+
+void print_failure(const std::string& message) {
+    const bool terminal = stderr_is_terminal();
+    if (terminal) std::cerr << "\033[31m";
+    std::cerr << "[FAIL] " << message;
+    if (terminal) std::cerr << "\033[0m";
+    std::cerr << '\n';
+}
+
+class Spinner {
+public:
+    explicit Spinner(std::string message)
+        : active_(stderr_is_terminal()), message_(std::move(message)) {
+        if (!active_) return;
+        worker_ = std::thread([this] {
+            static const char frames[] = {'-', '\\', '|', '/'};
+            std::size_t frame = 0;
+            while (!stop_.load()) {
+                std::cerr << "\r\033[33m" << frames[frame++ % 4]
+                          << "\033[0m " << message_ << std::flush;
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+        });
+    }
+
+    ~Spinner() {
+        stop_.store(true);
+        if (worker_.joinable()) worker_.join();
+        if (active_) std::cerr << "\r\033[2K" << std::flush;
+    }
+
+    Spinner(const Spinner&) = delete;
+    Spinner& operator=(const Spinner&) = delete;
+
+private:
+    std::atomic<bool> stop_{false};
+    bool active_;
+    std::string message_;
+    std::thread worker_;
+};
 
 void print_usage(std::ostream& out) {
     out << "CS253 calibration simulator\n"
@@ -47,34 +134,77 @@ void print_optional_value(const std::optional<Value>& value) {
     else std::cout << "NA";
 }
 
+const char* mode_label(Mode mode) {
+    return mode == Mode::exact_extrema ? "EXACT" : "MODULAR";
+}
+
+const char* structure_label(const char* name) {
+    if (std::string(name) == "A") return "LAZY SEGMENT TREE";
+    if (std::string(name) == "B") return "SQUARE-ROOT DECOMPOSITION";
+    return "BRUTE-FORCE ORACLE";
+}
+
 void print_result(const char* name, const ReplayResult& result,
                   const Workload& workload) {
-    std::cout << "STRUCTURE " << name << '\n';
-    for (std::size_t i = 0; i < result.answers.size(); ++i) {
-        const Aggregate& answer = result.answers[i];
-        std::cout << "Q " << i << " LEN " << answer.length
-                  << " SUM " << answer.sum_mod << " MIN ";
-        print_optional_value(answer.minimum);
-        std::cout << " MAX ";
-        print_optional_value(answer.maximum);
-        std::cout << '\n';
-    }
-    std::cout << std::setprecision(10)
-              << "ELAPSED_SECONDS " << result.elapsed_seconds << '\n';
-    if (result.elapsed_seconds > 0.0) {
-        std::cout << "OPS_PER_SECOND "
-                  << static_cast<double>(workload.operations.size()) /
-                         result.elapsed_seconds << '\n';
+    const double rate = result.elapsed_seconds > 0.0
+        ? static_cast<double>(workload.operations.size()) / result.elapsed_seconds
+        : 0.0;
+
+    std::cout << "\n============================================================\n"
+              << "  " << structure_label(name) << "\n"
+              << "============================================================\n"
+              << "  STRUCTURE " << (std::string(name) == "ORACLE" ? "ORACLE" : name) << "\n"
+              << "  Mode: " << mode_label(workload.mode)
+              << "   |   Elements: " << workload.initial.size()
+              << "   |   Operations: " << workload.operations.size()
+              << "   |   Queries: " << result.answers.size() << "\n";
+
+    if (result.answers.empty()) {
+        std::cout << "\n  No query operations were present in this workload.\n";
     } else {
-        std::cout << "OPS_PER_SECOND NA\n";
+        std::cout << "\n  QUERY RESULTS\n"
+                  << "  " << std::left << std::setw(8) << "Query"
+                  << std::right << std::setw(10) << "Length"
+                  << std::setw(20) << "Sum"
+                  << std::setw(12) << "Minimum"
+                  << std::setw(12) << "Maximum" << "\n"
+                  << "  " << std::string(62, '-') << "\n";
+        for (std::size_t i = 0; i < result.answers.size(); ++i) {
+            const Aggregate& answer = result.answers[i];
+            std::cout << "  " << std::left << std::setw(8) << (i + 1)
+                      << std::right << std::setw(10) << answer.length
+                      << std::setw(20) << answer.sum_mod
+                      << std::setw(12);
+            print_optional_value(answer.minimum);
+            std::cout << std::setw(12);
+            print_optional_value(answer.maximum);
+            std::cout << "\n"
+                      << "  Q " << i << " LEN " << answer.length
+                      << " SUM " << answer.sum_mod << " MIN ";
+            if (answer.minimum) std::cout << *answer.minimum;
+            else std::cout << "NA";
+            std::cout << " MAX ";
+            if (answer.maximum) std::cout << *answer.maximum << '\n';
+            else std::cout << "NA\n";
+        }
     }
+
+    std::cout << "\n  PERFORMANCE\n"
+              << "  Elapsed time       : " << std::fixed << std::setprecision(6)
+              << result.elapsed_seconds << " s\n"
+              << "  Throughput         : " << std::setprecision(2)
+              << rate << " operations/s\n"
+              << "  ELAPSED_SECONDS " << std::setprecision(6) << result.elapsed_seconds << "\n"
+              << "  OPS_PER_SECOND " << std::setprecision(2) << rate << "\n";
+
     const Counters& c = result.counters;
-    std::cout << "COUNTERS nodes_visited=" << c.nodes_visited
-              << " push_downs=" << c.push_downs
-              << " full_blocks=" << c.full_blocks
-              << " partial_elements=" << c.partial_elements
-              << " tag_compositions=" << c.tag_compositions
-              << " aggregate_merges=" << c.aggregate_merges << '\n';
+    std::cout << "\n  INTERNAL COUNTERS\n"
+              << "  Nodes visited      : " << c.nodes_visited << "\n"
+              << "  Push-downs         : " << c.push_downs << "\n"
+              << "  Full blocks        : " << c.full_blocks << "\n"
+              << "  Partial elements   : " << c.partial_elements << "\n"
+              << "  Tag compositions   : " << c.tag_compositions << "\n"
+              << "  Aggregate merges   : " << c.aggregate_merges << "\n";
 }
 
 bool same_answers(const std::vector<Aggregate>& a,
@@ -103,35 +233,50 @@ void save_workload(const Workload& workload, const std::string& path) {
 int run_selected(const Workload& workload, const std::string& selected) {
     if (selected == "A") {
         LazySegmentTree structure;
-        print_result("A", replay(structure, workload), workload);
+        ReplayResult result;
+        { Spinner spinner("Running Structure A"); result = replay(structure, workload); }
+        print_result("A", result, workload);
         return 0;
     }
     if (selected == "B") {
         SqrtDecomposition structure;
-        print_result("B", replay(structure, workload), workload);
+        ReplayResult result;
+        { Spinner spinner("Running Structure B"); result = replay(structure, workload); }
+        print_result("B", result, workload);
         return 0;
     }
     if (selected == "oracle") {
         ArrayOracle structure;
-        print_result("ORACLE", replay(structure, workload), workload);
+        ReplayResult result;
+        { Spinner spinner("Running brute-force Oracle"); result = replay(structure, workload); }
+        print_result("ORACLE", result, workload);
         return 0;
     }
     if (selected == "both") {
         LazySegmentTree a;
         SqrtDecomposition b;
         ArrayOracle oracle;
-        const ReplayResult ra = replay(a, workload);
-        const ReplayResult rb = replay(b, workload);
-        const ReplayResult ro = replay(oracle, workload);
+        ReplayResult ra, rb, ro;
+        { Spinner spinner("Running Structure A"); ra = replay(a, workload); }
+        { Spinner spinner("Running Structure B"); rb = replay(b, workload); }
+        { Spinner spinner("Running brute-force Oracle"); ro = replay(oracle, workload); }
         print_result("A", ra, workload);
         print_result("B", rb, workload);
         print_result("ORACLE", ro, workload);
         if (!same_answers(ra.answers, rb.answers) ||
             !same_answers(ra.answers, ro.answers)) {
+            print_status("FAIL", "Structure A, Structure B and Oracle disagree.");
             std::cerr << "ERROR: A, B and Oracle query answers differ.\n";
             return 4;
         }
-        std::cout << "A_B_ORACLE_QUERY_ANSWERS MATCH\n";
+        std::cout << "\n============================================================\n"
+                  << "                 DIFFERENTIAL VERIFICATION\n"
+                  << "============================================================\n";
+        print_status("PASS", "Structure A, Structure B and Oracle agree.");
+        std::cout << "  Query results checked: " << ra.answers.size() << "\n"
+                  << "  All reported aggregates match for this workload.\n"
+                  << "  A_B_ORACLE_QUERY_ANSWERS MATCH\n"
+                  << "============================================================\n";
         return 0;
     }
     throw std::invalid_argument("Unknown structure '" + selected +
@@ -171,7 +316,7 @@ int run_available_all() {
     const int comparison = run_selected(workload, "both");
     if (comparison != 0) return comparison;
     std::cout << "BENCHMARK_CSV_BEGIN\n";
-    run_benchmark(workload, std::cout);
+    { Spinner spinner("Running integrated benchmark"); run_benchmark(workload, std::cout); }
     std::cout << "BENCHMARK_CSV_END\n";
     std::cout << "FULL_PIPELINE PASS: sample replay, A/B/Oracle comparison and five-run benchmark completed.\n";
     return 0;
@@ -217,15 +362,22 @@ AdversarialTarget ask_target() {
 }
 
 void print_menu() {
-    std::cout << "\n=== CS253 Calibration Workbench ===\n"
-              << "1. Load workload from file\n"
-              << "2. Generate workload (adversarial families)\n"
-              << "3. Save current workload\n"
-              << "4. Run current workload (A / B / Oracle / compare all)\n"
-              << "5. Differential test A and B against the Array Oracle\n"
-              << "6. Benchmark A vs B (five repetitions, CSV)\n"
-              << "7. Show current workload summary\n"
-              << "0. Exit\n";
+    std::cout << "\n"
+              << "============================================================\n"
+              << "              CS253 | CALIBRATION WORKBENCH\n"
+              << "       Range affine updates  |  Query  |  Compare\n"
+              << "============================================================\n"
+              << "  WORKLOAD\n"
+              << "   1. Load workload from file\n"
+              << "   2. Generate an adversarial workload\n"
+              << "   3. Save current workload\n"
+              << "  EXECUTION\n"
+              << "   4. Run workload (A / B / Oracle / compare all)\n"
+              << "   5. Differential test against the Oracle\n"
+              << "   6. Benchmark Structure A vs Structure B\n"
+              << "   7. Show current workload summary\n"
+              << "   0. Exit\n"
+              << "------------------------------------------------------------\n";
 }
 
 int run_menu() {
@@ -241,8 +393,9 @@ int run_menu() {
                 Workload candidate = load_workload(path);
                 current = std::move(candidate);
                 has_workload = true;
-                std::cout << "Loaded " << current.initial.size() << " values and "
-                          << current.operations.size() << " operations.\n";
+                print_status("PASS", "Loaded " + std::to_string(current.initial.size()) +
+                             " values and " + std::to_string(current.operations.size()) +
+                             " operations.");
             } else if (choice == 2) {
                 GeneratorConfig config;
                 const AdversarialTarget target = ask_target();
@@ -255,12 +408,12 @@ int run_menu() {
                 Workload candidate = generate(target, config);
                 current = std::move(candidate);
                 has_workload = true;
-                std::cout << "Generated workload in memory.\n";
+                print_status("PASS", "Generated workload in memory.");
             } else if (choice == 3) {
                 if (!has_workload) throw std::logic_error("Load or generate a workload first.");
                 const std::string path = ask_line("Save path: ");
                 save_workload(current, path);
-                std::cout << "Saved workload to " << path << ".\n";
+                print_status("PASS", "Saved workload to " + path + ".");
             } else if (choice == 4) {
                 if (!has_workload) throw std::logic_error("Load or generate a workload first.");
                 std::cout << "Structure: 1=A 2=B 3=Oracle 4=Compare A/B/Oracle\n";
@@ -274,9 +427,11 @@ int run_menu() {
                 config.operations = ask_integer<std::size_t>("Operations: ", 0, 1000000);
                 config.seed = ask_integer<Seed>("Seed: ", 0, std::numeric_limits<Seed>::max());
                 config.mode = ask_mode();
-                const DifferentialResult result = differential_test(make_a(), make_b(), config);
-                std::cout << (result.passed ? "DIFFERENTIAL PASS: " : "DIFFERENTIAL FAIL: ")
-                          << result.message << " checked=" << result.operations_checked << '\n';
+                DifferentialResult result;
+                { Spinner spinner("Running differential test"); result = differential_test(make_a(), make_b(), config); }
+                print_status(result.passed ? "PASS" : "FAIL",
+                             "Differential test: " + result.message +
+                             " checked=" + std::to_string(result.operations_checked));
                 if (result.failing_case) {
                     const std::string path = ask_line("Save minimized failing workload path (blank to skip): ");
                     if (!path.empty()) save_workload(*result.failing_case, path);
@@ -286,9 +441,9 @@ int run_menu() {
                 const std::string path = ask_line("CSV output path: ");
                 std::ofstream output(path);
                 if (!output) throw std::runtime_error("Cannot write CSV file: " + path);
-                run_benchmark(current, output);
+                { Spinner spinner("Running benchmark repetitions"); run_benchmark(current, output); }
                 if (!output) throw std::runtime_error("I/O error writing CSV file: " + path);
-                std::cout << "Benchmark complete; CSV saved to " << path << ".\n";
+                print_status("PASS", "Benchmark complete; CSV saved to " + path + ".");
             } else if (choice == 7) {
                 if (!has_workload) {
                     std::cout << "No workload loaded.\n";
@@ -300,7 +455,7 @@ int run_menu() {
                 }
             }
         } catch (const std::exception& error) {
-            std::cerr << "ERROR: " << error.what() << '\n';
+            print_failure(error.what());
         }
     }
 }
@@ -325,7 +480,7 @@ int main(int argc, char** argv) {
         print_usage(std::cerr);
         return 2;
     } catch (const std::exception& error) {
-        std::cerr << "ERROR: " << error.what() << '\n';
+        print_failure(error.what());
         return 2;
     }
 }
