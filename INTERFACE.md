@@ -75,12 +75,12 @@ CSV schema is in results/README.md. No timing/throughput values may be fabricate
 ## Application CLI (Architect implementation)
 - `calibration --help` prints usage; `--status` reports which components are ready and which are blocked.
 - `calibration --run PATH --structure A|B|oracle|both` parses one CS253_V1 workload and runs Structure A,
-  Structure B, or both. `both` compares all returned query aggregates and exits nonzero on mismatch.
-- `calibration --run PATH --structure A|B|oracle|both` supports the independent Oracle selector. `both` remains an A/B comparison; Oracle is run separately.
-- `calibration --all` runs the available A/B sample application smoke check. It exits with status 3
-  and names the missing Oracle, Adversary and Analyst modules; it must not claim the complete pipeline
-  passed. Once those modules are delivered, the Architect integrates them and changes `--all` to run
-  the complete differential campaign, adversarial workloads, application and every benchmark.
+  Structure B, or both. `both` compares A, B and Oracle query aggregates and exits nonzero on mismatch.
+- `calibration --run PATH --structure A|B|oracle|both` supports the independent Oracle selector. `both` runs A, B and Oracle and compares every query aggregate.
+- `calibration --menu` opens a stateful terminal workbench for loading/saving CS253_V1 workloads,
+  generating adversarial workloads, selecting A/B/Oracle, running differential tests and exporting
+  five-repetition benchmark CSV. `calibration --all` compares A/B/Oracle on the sample workload and
+  runs the integrated five-repetition benchmark smoke campaign.
 - Exactly one command is accepted per invocation. Invalid flags, missing file names and unknown
   structures produce an informative message on stderr and a nonzero exit code.
 - Query output is stable and machine-readable: `Q <zero-based-query-number> LEN <length> SUM <canonical-residue> MIN <integer|NA> MAX <integer|NA>`.
@@ -103,4 +103,4 @@ CSV schema is in results/README.md. No timing/throughput values may be fabricate
 - `app/main.cpp` implements `--help`, `--status`, `--run PATH --structure A|B|both` and a deliberately incomplete `--all` gate.
 - `tests/app_test.cpp` covers parser, serializer, replay and edge cases; `tests/check_cli.cmake` covers the command-line behavior.
 - `docs/derivations/D3.md` and `D3.pdf` contain the Architect proof. The author name and team approval remain to be supplied.
-- The Oracle implementation, differential harness, Adversary generator and benchmark implementation are present. The full `--all` pipeline remains blocked because the benchmark campaign is not yet wired into that command; no full benchmark campaign is claimed.
+- The Oracle implementation, differential harness, Adversary generator and benchmark implementation are integrated. The recorded wide-range benchmark campaign is stored separately in `results/raw/width_sweep.csv`.
