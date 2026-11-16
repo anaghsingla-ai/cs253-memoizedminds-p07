@@ -1,4 +1,3 @@
-
 #include "cs253/array_oracle.hpp"
 #include "cs253/lazy_segment_tree.hpp"
 #include "cs253/sqrt_decomposition.hpp"
@@ -324,6 +323,23 @@ static void test_automatic_shrinking(){
         shrunk.operations.size()<=result.operations_checked,
         "Shrunk workload is larger than the original failure prefix"
     );
+
+    // Verify automatic shrinking is 1-minimal:
+    // deleting any one remaining operation must stop reproducing
+    // the failure.
+    for(std::size_t i=0;i<shrunk.operations.size();i++){
+        Workload without=shrunk;
+
+        without.operations.erase(
+            without.operations.begin()+
+                static_cast<std::ptrdiff_t>(i)
+        );
+
+        require(
+            !workload_reproduces_failure(without),
+            "Automatic shrink result is not deletion-minimal"
+        );
+    }
 
     std::cout<<"PASS  automatic_shrinking"<<std::endl;
     std::cout<<"      Original failure prefix: "

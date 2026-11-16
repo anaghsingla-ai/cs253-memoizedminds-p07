@@ -1,4 +1,3 @@
-
 #include <string>
 #include "cs253/array_oracle.hpp"
 #include "cs253/lazy_segment_tree.hpp"
@@ -434,6 +433,44 @@ DifferentialResult differential_test(
         return r;
     };
 
+    // Check all three structures, including the reference Oracle.
+    auto check_all_invariants=[&](
+        const std::string& stage,
+        std::size_t operation
+    )->std::string{
+        InvariantReport ro=oracle->check_invariants();
+
+        if(!ro.ok){
+            return "Oracle invariant violated "+stage+
+                " at op "+std::to_string(operation)+": "+
+                (ro.violations.empty()?"(no detail)":ro.violations[0]);
+        }
+
+        InvariantReport ra=struct_a->check_invariants();
+
+        if(!ra.ok){
+            return "A invariant violated "+stage+
+                " at op "+std::to_string(operation)+": "+
+                (ra.violations.empty()?"(no detail)":ra.violations[0]);
+        }
+
+        InvariantReport rb=struct_b->check_invariants();
+
+        if(!rb.ok){
+            return "B invariant violated "+stage+
+                " at op "+std::to_string(operation)+": "+
+                (rb.violations.empty()?"(no detail)":rb.violations[0]);
+        }
+
+        return "";
+    };
+
+    std::string initial_invariant_error=
+        check_all_invariants("after build",0);
+
+    if(!initial_invariant_error.empty())
+        return make_fail(initial_invariant_error,0);
+
     for(std::size_t i=0;i<config.operations;i++){
         bool do_update=(n>0) && ((rng()&1u)==0u);
 
@@ -502,27 +539,11 @@ DifferentialResult differential_test(
                 );
             }
 
-            auto ra=struct_a->check_invariants();
+            std::string invariant_error=
+                check_all_invariants("after update",i);
 
-            if(!ra.ok){
-                return make_fail(
-                    "A invariant violated after update at op "+
-                    std::to_string(i)+": "+
-                    (ra.violations.empty()?"(no detail)":ra.violations[0]),
-                    i+1
-                );
-            }
-
-            auto rb=struct_b->check_invariants();
-
-            if(!rb.ok){
-                return make_fail(
-                    "B invariant violated after update at op "+
-                    std::to_string(i)+": "+
-                    (rb.violations.empty()?"(no detail)":rb.violations[0]),
-                    i+1
-                );
-            }
+            if(!invariant_error.empty())
+                return make_fail(invariant_error,i+1);
         }
         else{
             std::size_t l=(n==0)?0u:
@@ -593,27 +614,11 @@ DifferentialResult differential_test(
                 );
             }
 
-            auto ra=struct_a->check_invariants();
+            std::string invariant_error=
+                check_all_invariants("after query",i);
 
-            if(!ra.ok){
-                return make_fail(
-                    "A invariant violated after query at op "+
-                    std::to_string(i)+": "+
-                    (ra.violations.empty()?"(no detail)":ra.violations[0]),
-                    i+1
-                );
-            }
-
-            auto rb=struct_b->check_invariants();
-
-            if(!rb.ok){
-                return make_fail(
-                    "B invariant violated after query at op "+
-                    std::to_string(i)+": "+
-                    (rb.violations.empty()?"(no detail)":rb.violations[0]),
-                    i+1
-                );
-            }
+            if(!invariant_error.empty())
+                return make_fail(invariant_error,i+1);
         }
 
         result.operations_checked=i+1;
@@ -765,6 +770,30 @@ Workload shrink_failure(
 
                 if(still_fails(candidate))
                     current=std::move(candidate);
+            }
+        }
+    }
+
+    // Phase 4: final single-operation deletion pass.
+    // Repeat until no remaining operation can be removed while
+    // preserving the failure. This makes the result 1-minimal.
+    bool removed=true;
+
+    while(removed){
+        removed=false;
+
+        for(std::size_t i=0;i<current.operations.size();i++){
+            Workload candidate=current;
+
+            candidate.operations.erase(
+                candidate.operations.begin()+
+                    static_cast<std::ptrdiff_t>(i)
+            );
+
+            if(still_fails(candidate)){
+                current=std::move(candidate);
+                removed=true;
+                break;
             }
         }
     }
