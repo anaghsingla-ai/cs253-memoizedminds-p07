@@ -1,0 +1,8 @@
+1
+${CMAKE_CURRENT_SOURCE_DIR}/tests/cases/architect_sample.txt
+4
+4
+6
+menu_smoke.csv
+7
+0
