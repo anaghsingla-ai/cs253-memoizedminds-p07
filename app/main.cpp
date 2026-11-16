@@ -47,34 +47,67 @@ void print_optional_value(const std::optional<Value>& value) {
     else std::cout << "NA";
 }
 
+const char* mode_label(Mode mode) {
+    return mode == Mode::exact_extrema ? "EXACT" : "MODULAR";
+}
+
+const char* structure_label(const char* name) {
+    if (std::string(name) == "A") return "LAZY SEGMENT TREE";
+    if (std::string(name) == "B") return "SQUARE-ROOT DECOMPOSITION";
+    return "BRUTE-FORCE ORACLE";
+}
+
 void print_result(const char* name, const ReplayResult& result,
                   const Workload& workload) {
-    std::cout << "STRUCTURE " << name << '\n';
-    for (std::size_t i = 0; i < result.answers.size(); ++i) {
-        const Aggregate& answer = result.answers[i];
-        std::cout << "Q " << i << " LEN " << answer.length
-                  << " SUM " << answer.sum_mod << " MIN ";
-        print_optional_value(answer.minimum);
-        std::cout << " MAX ";
-        print_optional_value(answer.maximum);
-        std::cout << '\n';
-    }
-    std::cout << std::setprecision(10)
-              << "ELAPSED_SECONDS " << result.elapsed_seconds << '\n';
-    if (result.elapsed_seconds > 0.0) {
-        std::cout << "OPS_PER_SECOND "
-                  << static_cast<double>(workload.operations.size()) /
-                         result.elapsed_seconds << '\n';
+    const double rate = result.elapsed_seconds > 0.0
+        ? static_cast<double>(workload.operations.size()) / result.elapsed_seconds
+        : 0.0;
+
+    std::cout << "\n============================================================\n"
+              << "  " << structure_label(name) << "\n"
+              << "============================================================\n"
+              << "  Mode: " << mode_label(workload.mode)
+              << "   |   Elements: " << workload.initial.size()
+              << "   |   Operations: " << workload.operations.size()
+              << "   |   Queries: " << result.answers.size() << "\n";
+
+    if (result.answers.empty()) {
+        std::cout << "\n  No query operations were present in this workload.\n";
     } else {
-        std::cout << "OPS_PER_SECOND NA\n";
+        std::cout << "\n  QUERY RESULTS\n"
+                  << "  " << std::left << std::setw(8) << "Query"
+                  << std::right << std::setw(10) << "Length"
+                  << std::setw(20) << "Sum"
+                  << std::setw(12) << "Minimum"
+                  << std::setw(12) << "Maximum" << "\n"
+                  << "  " << std::string(62, '-') << "\n";
+        for (std::size_t i = 0; i < result.answers.size(); ++i) {
+            const Aggregate& answer = result.answers[i];
+            std::cout << "  " << std::left << std::setw(8) << (i + 1)
+                      << std::right << std::setw(10) << answer.length
+                      << std::setw(20) << answer.sum_mod
+                      << std::setw(12);
+            print_optional_value(answer.minimum);
+            std::cout << std::setw(12);
+            print_optional_value(answer.maximum);
+            std::cout << "\n";
+        }
     }
+
+    std::cout << "\n  PERFORMANCE\n"
+              << "  Elapsed time       : " << std::fixed << std::setprecision(6)
+              << result.elapsed_seconds << " s\n"
+              << "  Throughput         : " << std::setprecision(2)
+              << rate << " operations/s\n";
+
     const Counters& c = result.counters;
-    std::cout << "COUNTERS nodes_visited=" << c.nodes_visited
-              << " push_downs=" << c.push_downs
-              << " full_blocks=" << c.full_blocks
-              << " partial_elements=" << c.partial_elements
-              << " tag_compositions=" << c.tag_compositions
-              << " aggregate_merges=" << c.aggregate_merges << '\n';
+    std::cout << "\n  INTERNAL COUNTERS\n"
+              << "  Nodes visited      : " << c.nodes_visited << "\n"
+              << "  Push-downs         : " << c.push_downs << "\n"
+              << "  Full blocks        : " << c.full_blocks << "\n"
+              << "  Partial elements   : " << c.partial_elements << "\n"
+              << "  Tag compositions   : " << c.tag_compositions << "\n"
+              << "  Aggregate merges   : " << c.aggregate_merges << "\n";
 }
 
 bool same_answers(const std::vector<Aggregate>& a,
@@ -131,7 +164,13 @@ int run_selected(const Workload& workload, const std::string& selected) {
             std::cerr << "ERROR: A, B and Oracle query answers differ.\n";
             return 4;
         }
-        std::cout << "A_B_ORACLE_QUERY_ANSWERS MATCH\n";
+        std::cout << "\n============================================================\n"
+                  << "                 DIFFERENTIAL VERIFICATION\n"
+                  << "============================================================\n"
+                  << "  [PASS] Structure A, Structure B and Oracle agree.\n"
+                  << "  Query results checked: " << ra.answers.size() << "\n"
+                  << "  All reported aggregates match for this workload.\n"
+                  << "============================================================\n";
         return 0;
     }
     throw std::invalid_argument("Unknown structure '" + selected +
@@ -217,15 +256,22 @@ AdversarialTarget ask_target() {
 }
 
 void print_menu() {
-    std::cout << "\n=== CS253 Calibration Workbench ===\n"
-              << "1. Load workload from file\n"
-              << "2. Generate workload (adversarial families)\n"
-              << "3. Save current workload\n"
-              << "4. Run current workload (A / B / Oracle / compare all)\n"
-              << "5. Differential test A and B against the Array Oracle\n"
-              << "6. Benchmark A vs B (five repetitions, CSV)\n"
-              << "7. Show current workload summary\n"
-              << "0. Exit\n";
+    std::cout << "\n"
+              << "============================================================\n"
+              << "              CS253 | CALIBRATION WORKBENCH\n"
+              << "       Range affine updates  |  Query  |  Compare\n"
+              << "============================================================\n"
+              << "  WORKLOAD\n"
+              << "   1. Load workload from file\n"
+              << "   2. Generate an adversarial workload\n"
+              << "   3. Save current workload\n"
+              << "  EXECUTION\n"
+              << "   4. Run workload (A / B / Oracle / compare all)\n"
+              << "   5. Differential test against the Oracle\n"
+              << "   6. Benchmark Structure A vs Structure B\n"
+              << "   7. Show current workload summary\n"
+              << "   0. Exit\n"
+              << "------------------------------------------------------------\n";
 }
 
 int run_menu() {
