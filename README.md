@@ -104,98 +104,46 @@ This mode supports general affine coefficients. Minimum and maximum queries are 
 
 ## 5. Requirements
 
-- C++17 compatible compiler (GCC/MinGW, Clang, or MSVC)
+- C++17 compiler (GCC/MinGW, Clang, or MSVC)
 - CMake 3.16 or newer
-- A compatible build tool (MinGW Make, Make, Ninja, or Visual Studio build tools)
-- No third-party C++ libraries are required; the implementation uses the C++ standard library.
+- Compatible build tool (MinGW Make, Make, Ninja, or Visual Studio build tools)
 
-The repository includes a `requirements.txt` file as a convenient checklist of these **native system requirements**. It is not a Python dependency file, so do not run `pip install -r requirements.txt`.
+The project uses only the C++ standard library; no third-party C++ dependencies need to be installed. `requirements.txt` lists the required native tools. It is not a Python requirements file.
 
-## 6. One-Command Build and Run (Windows)
+## 6. Build and Run on Windows (PowerShell)
 
-Open PowerShell in the repository root and run:
+From the repository root, run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass; .\run.ps1
 ```
 
-This automatically configures CMake (using MinGW Make when available), builds the project, and runs the 100,000-element demonstration workload against Structure A, Structure B, and the Oracle.
+The script configures the build, compiles the project, and runs the 100,000-element demonstration workload against Structure A, Structure B, and the Oracle.
 
-Other modes:
+To open the interactive workbench:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass; .\run.ps1 -Mode Menu
+```
+
+To build and run the automated tests:
+
+```powershell
 Set-ExecutionPolicy -Scope Process Bypass; .\run.ps1 -Mode Tests
 ```
 
-The first run requires the native tools listed above to already be installed and available on PATH. The script does not install a C++ compiler or CMake for you.
+The C++ compiler, CMake, and build tool must already be installed and available on `PATH`.
 
-## 7. Manual Build Instructions
+## 7. Manual Build
 
 From the repository root:
 
-```bash
-cmake -S . -B build
-cmake --build build -j
+```powershell
+cmake -S . -B build -G "MinGW Makefiles"
+cmake --build build --parallel
 ```
 
-The executable is generated in the `build` directory.
-
-## 8. Running the Application
-
-### Interactive Menu
-
-Start the terminal application:
-
-```bash
-./build/calibration --menu
-```
-
-The interactive menu provides access to the application's workload, execution, comparison, and benchmark functionality.
-
-### Command-Line Help
-
-```bash
-./build/calibration --help
-```
-
-### Application Status
-
-```bash
-./build/calibration --status
-```
-
-### Run a Workload
-
-The application accepts a workload file and allows execution using the available implementations.
-
-```bash
-./build/calibration --run tests/cases/architect_sample.txt --structure A
-```
-
-Other supported structure selections include:
-
-```bash
-./build/calibration --run tests/cases/architect_sample.txt --structure B
-./build/calibration --run tests/cases/architect_sample.txt --structure oracle
-./build/calibration --run tests/cases/architect_sample.txt --structure both
-```
-
-### Run the Combined Workflow
-
-```bash
-./build/calibration --all
-```
-
-This runs the application's combined workflow. It is a smoke-test workflow and should not be interpreted as a substitute for the full performance evaluation.
-
-### Run the Test Script
-
-```bash
-bash scripts/run_all.sh
-```
-
-Refer to `--help` for the exact command-line options supported by the current build.
+For generators other than MinGW Makefiles, omit the `-G` option or select the generator installed on your system.
 
 ## 9. Workload Format
 
