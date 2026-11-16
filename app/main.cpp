@@ -316,7 +316,7 @@ int run_available_all() {
     const int comparison = run_selected(workload, "both");
     if (comparison != 0) return comparison;
     std::cout << "BENCHMARK_CSV_BEGIN\n";
-    run_benchmark(workload, std::cout);
+    { Spinner spinner("Running integrated benchmark"); run_benchmark(workload, std::cout); }
     std::cout << "BENCHMARK_CSV_END\n";
     std::cout << "FULL_PIPELINE PASS: sample replay, A/B/Oracle comparison and five-run benchmark completed.\n";
     return 0;
