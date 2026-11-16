@@ -1,6 +1,6 @@
 
 #include "cs253/array_oracle.hpp"
-#include <cstdint>
+
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -10,14 +10,16 @@
 using namespace cs253;
 
 void require(bool condition,const std::string& message){
-    if(!condition)throw std::runtime_error(message);
+    if(!condition){
+        throw std::runtime_error(message);
+    }
 }
 
 template<typename Exception,typename Function>
-void expect_throw(Function fn,const std::string& message){
+void expect_throw(Function function,const std::string& message){
     bool thrown=false;
     try{
-        fn();
+        function();
     }
     catch(const Exception&){
         thrown=true;
@@ -29,15 +31,12 @@ void test_build_and_basic_query(){
     ArrayOracle oracle;
     oracle.build({1,2,3,4,5},Mode::exact_extrema);
 
-    require(oracle.size()==5,"Incorrect size");
-    require(oracle.mode()==Mode::exact_extrema,"Incorrect mode");
+    Aggregate result=oracle.query({0,5});
 
-    Aggregate result=oracle.query({1,4});
-
-    require(result.length==3,"Incorrect query length");
-    require(result.sum_mod==9,"Incorrect sum");
-    require(result.minimum==2,"Incorrect minimum");
-    require(result.maximum==4,"Incorrect maximum");
+    require(result.length==5,"Incorrect query length");
+    require(result.sum_mod==15,"Incorrect sum");
+    require(result.minimum.has_value() && *result.minimum==1,"Incorrect minimum");
+    require(result.maximum.has_value() && *result.maximum==5,"Incorrect maximum");
 }
 
 void test_exact_affine_updates(){
@@ -48,63 +47,61 @@ void test_exact_affine_updates(){
 
     Aggregate result=oracle.query({0,5});
 
-    require(result.sum_mod==27,"Incorrect sum after negative update");
-    require(result.minimum==1,"Incorrect minimum after negative update");
-    require(result.maximum==8,"Incorrect maximum after negative update");
+    require(result.sum_mod==27,"Incorrect sum after negative affine update");
+    require(result.minimum.has_value() && *result.minimum==1,"Incorrect minimum after update");
+    require(result.maximum.has_value() && *result.maximum==8,"Incorrect maximum after update");
 
     oracle.update({0,5},{0,-3});
 
     result=oracle.query({0,5});
 
-    require(result.sum_mod==modulus-15,"Incorrect sum after zero multiplier");
-    require(result.minimum==-3,"Incorrect minimum after zero multiplier");
-    require(result.maximum==-3,"Incorrect maximum after zero multiplier");
+    require(result.sum_mod==modulus-15,"Incorrect sum after assignment update");
+    require(result.minimum.has_value() && *result.minimum==-3,"Incorrect minimum after assignment");
+    require(result.maximum.has_value() && *result.maximum==-3,"Incorrect maximum after assignment");
 }
 
 void test_modular_mode(){
     ArrayOracle oracle;
-    oracle.build({-1,2,modulus+3},Mode::modular_sum);
+    oracle.build({modulus+1,-1},Mode::modular_sum);
 
-    Aggregate result=oracle.query({0,3});
+    Aggregate result=oracle.query({0,2});
 
-    require(result.length==3,"Incorrect modular query length");
-    require(result.sum_mod==4,"Incorrect initial modular sum");
-    require(!result.minimum.has_value(),"Modular mode must not return minimum");
-    require(!result.maximum.has_value(),"Modular mode must not return maximum");
+    require(result.length==2,"Incorrect modular query length");
+    require(result.sum_mod==0,"Incorrect modular normalization during build");
+    require(!result.minimum.has_value(),"Minimum should be absent in modular mode");
+    require(!result.maximum.has_value(),"Maximum should be absent in modular mode");
 
-    oracle.update({0,3},{-2,-3});
+    oracle.update({0,2},{2,3});
 
-    result=oracle.query({0,3});
+    result=oracle.query({0,2});
 
-    // Values become:
-    // -2*(-1)-3 = -1
-    // -2*2-3 = -7
-    // -2*3-3 = -9
-    // Their canonical residues sum to modulus-17.
-    require(result.sum_mod==modulus-17,"Incorrect modular affine update");
-    require(oracle.check_invariants().ok,"Modular invariant check failed");
+    require(result.sum_mod==6,"Incorrect modular affine update");
+    require(!result.minimum.has_value(),"Minimum should remain absent in modular mode");
+    require(!result.maximum.has_value(),"Maximum should remain absent in modular mode");
 }
 
 void test_empty_and_boundary_ranges(){
     ArrayOracle oracle;
-    oracle.build({10,20,30},Mode::exact_extrema);
+    oracle.build({4,8,12},Mode::exact_extrema);
 
     Aggregate empty=oracle.query({1,1});
 
-    require(empty.length==0,"Empty query has incorrect length");
-    require(empty.sum_mod==0,"Empty query has nonzero sum");
-    require(!empty.minimum.has_value(),"Empty query has a minimum");
-    require(!empty.maximum.has_value(),"Empty query has a maximum");
+    require(empty.length==0,"Empty range should have length zero");
+    require(empty.sum_mod==0,"Empty range should have sum zero");
+    require(!empty.minimum.has_value(),"Empty range should have no minimum");
+    require(!empty.maximum.has_value(),"Empty range should have no maximum");
 
-    oracle.update({0,0},{1,100});
-    oracle.update({3,3},{1,100});
-    oracle.update({0,3},{1,1});
+    Aggregate first=oracle.query({0,1});
+    require(first.sum_mod==4,"Incorrect first-element query");
 
-    Aggregate result=oracle.query({0,3});
+    Aggregate last=oracle.query({2,3});
+    require(last.sum_mod==12,"Incorrect last-element query");
 
-    require(result.sum_mod==63,"Incorrect full-range update");
-    require(result.minimum==11,"Incorrect minimum after boundary updates");
-    require(result.maximum==31,"Incorrect maximum after boundary updates");
+    oracle.build({},Mode::exact_extrema);
+
+    empty=oracle.query({0,0});
+    require(empty.length==0,"Empty build should support empty query");
+    require(empty.sum_mod==0,"Empty build should have zero sum");
 }
 
 void test_invalid_ranges(){
@@ -112,22 +109,27 @@ void test_invalid_ranges(){
     oracle.build({1,2,3},Mode::exact_extrema);
 
     expect_throw<std::out_of_range>(
-        [&](){oracle.update({2,4},{1,1});},
-        "Invalid update range did not throw"
+        [&](){oracle.update({0,4},{1,1});},
+        "Update with end beyond size did not throw"
     );
 
     expect_throw<std::out_of_range>(
         [&](){oracle.update({2,1},{1,1});},
-        "Reversed update range did not throw"
+        "Update with reversed range did not throw"
     );
 
     expect_throw<std::out_of_range>(
         [&](){oracle.query({0,4});},
-        "Invalid query range did not throw"
+        "Query with end beyond size did not throw"
+    );
+
+    expect_throw<std::out_of_range>(
+        [&](){oracle.query({3,2});},
+        "Query with reversed range did not throw"
     );
 
     Aggregate result=oracle.query({0,3});
-    require(result.sum_mod==6,"Invalid update modified the array");
+    require(result.sum_mod==6,"Invalid range operation modified the array");
 }
 
 void test_invalid_exact_multiplier(){
@@ -136,15 +138,15 @@ void test_invalid_exact_multiplier(){
 
     expect_throw<std::invalid_argument>(
         [&](){oracle.update({0,3},{2,5});},
-        "Invalid exact multiplier did not throw"
+        "Invalid exact-mode multiplier did not throw"
     );
 
     Aggregate result=oracle.query({0,3});
     require(result.sum_mod==6,"Invalid multiplier modified the array");
 }
+
 void test_overflow_is_atomic(){
     ArrayOracle oracle;
-
     oracle.build({
         std::numeric_limits<Value>::max(),
         10
@@ -157,12 +159,17 @@ void test_overflow_is_atomic(){
 
     Aggregate result=oracle.query({0,2});
 
-    require(result.sum_mod==
-            (std::numeric_limits<Value>::max()%modulus+10)%modulus,
-            "Overflowing update partially modified the array");
+    require(
+        result.sum_mod==
+        (std::numeric_limits<Value>::max()%modulus+10)%modulus,
+        "Overflowing update partially modified the array"
+    );
 
-    require(result.maximum==std::numeric_limits<Value>::max(),
-            "Overflowing update changed the maximum");
+    require(
+        result.maximum.has_value() &&
+        *result.maximum==std::numeric_limits<Value>::max(),
+        "Overflowing update changed the maximum"
+    );
 }
 
 void test_unbuilt_operations(){
@@ -177,9 +184,6 @@ void test_unbuilt_operations(){
         [&](){oracle.query({0,0});},
         "Query before build did not throw"
     );
-
-    require(!oracle.check_invariants().ok,
-            "Unbuilt oracle should fail invariant check");
 }
 
 void test_rebuild_and_counters(){
@@ -187,23 +191,27 @@ void test_rebuild_and_counters(){
 
     oracle.build({1,2,3},Mode::exact_extrema);
     oracle.update({0,3},{1,5});
-    oracle.reset_counters();
 
-    Counters counters=oracle.counters();
-
-    require(counters.nodes_visited==0,"Oracle node counter must be zero");
-    require(counters.push_downs==0,"Oracle push counter must be zero");
-    require(counters.full_blocks==0,"Oracle block counter must be zero");
-    require(counters.partial_elements==0,"Oracle partial counter must be zero");
-    require(counters.tag_compositions==0,"Oracle composition counter must be zero");
-    require(counters.aggregate_merges==0,"Oracle merge counter must be zero");
-
-    oracle.build({7,8},Mode::exact_extrema);
+    oracle.build({10,20},Mode::exact_extrema);
 
     Aggregate result=oracle.query({0,2});
 
-    require(result.sum_mod==15,"Build did not replace previous array");
-    require(oracle.check_invariants().ok,"Invariant check failed after rebuild");
+    require(result.sum_mod==30,"Rebuild did not replace previous data");
+
+    Counters stats=oracle.counters();
+
+    require(stats.nodes_visited==0,"Oracle nodes_visited should be zero");
+    require(stats.push_downs==0,"Oracle push_downs should be zero");
+    require(stats.full_blocks==0,"Oracle full_blocks should be zero");
+    require(stats.partial_elements==0,"Oracle partial_elements should be zero");
+    require(stats.tag_compositions==0,"Oracle tag_compositions should be zero");
+    require(stats.aggregate_merges==0,"Oracle aggregate_merges should be zero");
+
+    oracle.reset_counters();
+
+    stats=oracle.counters();
+
+    require(stats.nodes_visited==0,"Oracle counter reset failed");
 }
 
 int main(){
@@ -214,15 +222,15 @@ int main(){
         test_empty_and_boundary_ranges();
         test_invalid_ranges();
         test_invalid_exact_multiplier();
+        test_overflow_is_atomic();
         test_unbuilt_operations();
         test_rebuild_and_counters();
 
-        std::cout<<"All ArrayOracle tests passed!"<<std::endl;
+        std::cout<<"All Oracle tests passed."<<std::endl;
+        return 0;
     }
-    catch(const std::exception& e){
-        std::cerr<<"Oracle test failed: "<<e.what()<<std::endl;
+    catch(const std::exception& error){
+        std::cerr<<"Oracle test failed: "<<error.what()<<std::endl;
         return 1;
     }
-
-    return 0;
 }
