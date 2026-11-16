@@ -400,12 +400,12 @@ int run_menu() {
                 Workload candidate = generate(target, config);
                 current = std::move(candidate);
                 has_workload = true;
-                std::cout << "Generated workload in memory.\n";
+                print_status("PASS", "Generated workload in memory.");
             } else if (choice == 3) {
                 if (!has_workload) throw std::logic_error("Load or generate a workload first.");
                 const std::string path = ask_line("Save path: ");
                 save_workload(current, path);
-                std::cout << "Saved workload to " << path << ".\n";
+                print_status("PASS", "Saved workload to " + path + ".");
             } else if (choice == 4) {
                 if (!has_workload) throw std::logic_error("Load or generate a workload first.");
                 std::cout << "Structure: 1=A 2=B 3=Oracle 4=Compare A/B/Oracle\n";
@@ -419,7 +419,8 @@ int run_menu() {
                 config.operations = ask_integer<std::size_t>("Operations: ", 0, 1000000);
                 config.seed = ask_integer<Seed>("Seed: ", 0, std::numeric_limits<Seed>::max());
                 config.mode = ask_mode();
-                const DifferentialResult result = differential_test(make_a(), make_b(), config);
+                DifferentialResult result;
+                { Spinner spinner("Running differential test"); result = differential_test(make_a(), make_b(), config); }
                 print_status(result.passed ? "PASS" : "FAIL",
                              "Differential test: " + result.message +
                              " checked=" + std::to_string(result.operations_checked));
@@ -432,7 +433,7 @@ int run_menu() {
                 const std::string path = ask_line("CSV output path: ");
                 std::ofstream output(path);
                 if (!output) throw std::runtime_error("Cannot write CSV file: " + path);
-                run_benchmark(current, output);
+                { Spinner spinner("Running benchmark repetitions"); run_benchmark(current, output); }
                 if (!output) throw std::runtime_error("I/O error writing CSV file: " + path);
                 print_status("PASS", "Benchmark complete; CSV saved to " + path + ".");
             } else if (choice == 7) {
@@ -471,7 +472,7 @@ int main(int argc, char** argv) {
         print_usage(std::cerr);
         return 2;
     } catch (const std::exception& error) {
-        std::cerr << "ERROR: " << error.what() << '\n';
+        print_status("FAIL", error.what());
         return 2;
     }
 }
