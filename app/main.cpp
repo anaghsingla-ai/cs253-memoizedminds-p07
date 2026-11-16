@@ -69,6 +69,14 @@ void print_status(const char* label, const std::string& message) {
     std::cout << " " << message << '\n';
 }
 
+void print_failure(const std::string& message) {
+    const bool terminal = stderr_is_terminal();
+    if (terminal) std::cerr << "\033[31m";
+    std::cerr << "[FAIL] " << message;
+    if (terminal) std::cerr << "\033[0m";
+    std::cerr << '\n';
+}
+
 class Spinner {
 public:
     explicit Spinner(std::string message)
@@ -447,7 +455,7 @@ int run_menu() {
                 }
             }
         } catch (const std::exception& error) {
-            print_status("FAIL", error.what());
+            print_failure(error.what());
         }
     }
 }
@@ -472,7 +480,7 @@ int main(int argc, char** argv) {
         print_usage(std::cerr);
         return 2;
     } catch (const std::exception& error) {
-        print_status("FAIL", error.what());
+        print_failure(error.what());
         return 2;
     }
 }
