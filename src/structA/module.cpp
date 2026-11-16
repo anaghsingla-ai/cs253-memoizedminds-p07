@@ -98,6 +98,7 @@ void LazySegmentTree::build(
         );
     }
 
+    built = false;
     n = initial.size();
     current_mode = requested_mode;
 
@@ -112,6 +113,7 @@ void LazySegmentTree::build(
 
 
     stats = {};
+    built = true;
 }
 
 void LazySegmentTree::build_tree(
@@ -142,11 +144,13 @@ void LazySegmentTree::build_tree(
 
 
 
-std::size_t LazySegmentTree::size() const noexcept {
+std::size_t LazySegmentTree::size() const {
+    if (!built) throw std::logic_error("LazySegmentTree: build() has not been called");
     return n;
 }
 
-Mode LazySegmentTree::mode() const noexcept {
+Mode LazySegmentTree::mode() const {
+    if (!built) throw std::logic_error("LazySegmentTree: build() has not been called");
     return current_mode;
 }
 

@@ -11,7 +11,7 @@ endif()
 execute_process(COMMAND "${PROGRAM}" --status
   RESULT_VARIABLE status_code OUTPUT_VARIABLE status_out ERROR_VARIABLE status_err)
 if(NOT status_code EQUAL 0 OR NOT status_out MATCHES "parser=ready" OR
-   NOT status_out MATCHES "full_pipeline=blocked")
+   NOT status_out MATCHES "full_pipeline=ready")
   message(FATAL_ERROR "--status is inaccurate: ${status_err}${status_out}")
 endif()
 
@@ -27,15 +27,15 @@ foreach(structure IN ITEMS A B both)
   if(NOT run_out MATCHES "ELAPSED_SECONDS" OR NOT run_out MATCHES "OPS_PER_SECOND")
     message(FATAL_ERROR "--run ${structure} omitted timing/throughput: ${run_out}")
   endif()
-  if(structure STREQUAL "both" AND NOT run_out MATCHES "A_B_QUERY_ANSWERS MATCH")
+  if(structure STREQUAL "both" AND NOT run_out MATCHES "A_B_ORACLE_QUERY_ANSWERS MATCH")
     message(FATAL_ERROR "--structure both did not report the A/B comparison: ${run_out}")
   endif()
 endforeach()
 
 execute_process(COMMAND "${PROGRAM}" --run "${WORKLOAD}" --structure oracle
   RESULT_VARIABLE oracle_code OUTPUT_VARIABLE oracle_out ERROR_VARIABLE oracle_err)
-if(oracle_code EQUAL 0 OR NOT oracle_err MATCHES "Oracle module is not implemented")
-  message(FATAL_ERROR "Unavailable Oracle must fail explicitly: ${oracle_err}${oracle_out}")
+if(NOT oracle_code EQUAL 0 OR NOT oracle_out MATCHES "STRUCTURE ORACLE")
+  message(FATAL_ERROR "Oracle selector failed: ${oracle_err}${oracle_out}")
 endif()
 
 if(DEFINED MODULAR_WORKLOAD)
@@ -64,9 +64,9 @@ endif()
 
 execute_process(COMMAND "${PROGRAM}" --all
   RESULT_VARIABLE all_code OUTPUT_VARIABLE all_out ERROR_VARIABLE all_err)
-if(NOT all_code EQUAL 3 OR NOT all_out MATCHES "AVAILABLE_APP_SMOKE PASS" OR
-   NOT all_out MATCHES "BLOCKED: full --all requires")
-  message(FATAL_ERROR "--all must pass available smoke checks and report blockers: ${all_err}${all_out}")
+if(NOT all_code EQUAL 0 OR NOT all_out MATCHES "A_B_ORACLE_QUERY_ANSWERS MATCH" OR
+   NOT all_out MATCHES "FULL_PIPELINE PASS" OR NOT all_out MATCHES "BENCHMARK_CSV_BEGIN")
+  message(FATAL_ERROR "--all must compare A/B/Oracle and run the benchmark campaign: ${all_err}${all_out}")
 endif()
 
-message(STATUS "CLI integration checks passed; full --all is correctly marked blocked")
+message(STATUS "CLI integration checks passed; --all completed the integrated sample pipeline")

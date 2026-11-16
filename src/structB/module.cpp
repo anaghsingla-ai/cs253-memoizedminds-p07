@@ -108,6 +108,7 @@ struct SqrtDecomposition::Impl {
     }
 
     void build(const std::vector<Value>& initial, Mode mode) {
+        built = false;
         std::size_t nn = initial.size();
         std::size_t bs = g_block_setting;
         if (bs == 0) {
@@ -280,8 +281,8 @@ SqrtDecomposition::SqrtDecomposition() : impl_(std::make_unique<Impl>()) {}
 SqrtDecomposition::~SqrtDecomposition() = default;
 
 void SqrtDecomposition::build(const std::vector<Value>& initial, Mode mode) { impl_->build(initial, mode); }
-std::size_t SqrtDecomposition::size() const noexcept { return impl_->n; }
-Mode SqrtDecomposition::mode() const noexcept { return impl_->md; }
+std::size_t SqrtDecomposition::size() const { impl_->require_built(); return impl_->n; }
+Mode SqrtDecomposition::mode() const { impl_->require_built(); return impl_->md; }
 void SqrtDecomposition::update(Range range, AffineTag tag) { impl_->update(range, tag); }
 Aggregate SqrtDecomposition::query(Range range) { return impl_->query(range); }
 Counters SqrtDecomposition::counters() const noexcept { return impl_->cnt; }

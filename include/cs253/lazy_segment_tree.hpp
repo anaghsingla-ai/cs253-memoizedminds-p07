@@ -20,6 +20,7 @@ private:
     std::size_t n = 0;
     Mode current_mode = Mode::exact_extrema;
     Counters stats{};
+    bool built = false;
 
     void build_tree(int v, int tl, int tr,
                     const std::vector<Value>& a);
@@ -41,8 +42,8 @@ public:
     void build(const std::vector<Value>& initial,
                Mode mode) override;
 
-    std::size_t size() const noexcept override;
-    Mode mode() const noexcept override;
+    std::size_t size() const override;
+    Mode mode() const override;
 
     void update(Range range, AffineTag tag) override;
     Aggregate query(Range range) override;

@@ -40,12 +40,12 @@ Measured on `n = 100,000` elements and `q = 100,000` mixed operations (50% updat
 
 | Width (w) | Struct A Mean Time (s) | Struct A SD (s) | Struct B Mean Time (s) | Struct B SD (s) |
 | --- | --- | --- | --- | --- |
-| 1 | 0.02684 | 0.00008 | 0.01882 | 0.00012 |
-| 16 | 0.05246 | 0.00054 | 0.02131 | 0.00011 |
-| 317 | 0.09849 | 0.00087 | 0.05996 | 0.00043 |
-| 4,096 | 0.13065 | 0.00376 | 0.08954 | 0.00089 |
-| 32,768 | 0.14805 | 0.00099 | 0.16180 | 0.00023 |
-| 100,000 | 0.00183 | 0.00004 | 0.24582 | 0.00122 |
+| 1 | 0.02298 | 0.00036 | 0.01880 | 0.00007 |
+| 16 | 0.04383 | 0.00040 | 0.02124 | 0.00012 |
+| 317 | 0.08326 | 0.00096 | 0.05928 | 0.00014 |
+| 4,096 | 0.11112 | 0.00141 | 0.08941 | 0.00056 |
+| 32,768 | 0.13320 | 0.00092 | 0.16171 | 0.00205 |
+| 100,000 | 0.00192 | 0.00007 | 0.24185 | 0.00170 |
 
 Operation counters across the same width sweep (`100,000` operations):
 
@@ -67,7 +67,46 @@ Operation counters across the same width sweep (`100,000` operations):
 - **Reproducibility**: Run `python3 results/scripts/plot_results.py results/raw/width_sweep.csv results/figures` to regenerate all figures from the recorded CSV logs.
 
 ## Adversarial results and gaps
-TODO: all three required targets, crossover or reason none exists, predicted vs measured gaps.
+- The adversary generator covers maximum push-downs, alternating negative gains, block-friendly operations and range-width sweeps. D5 documents the reset/probe construction and counter units; deterministic tests verify the predicted push counts and block-alignment behavior.
+- The measured crossover occurs between widths 4,096 and 32,768 on this machine: B is faster through 4,096, while A is faster at 32,768 and dramatically faster for the full-array width.
+- The cost model predicts A's logarithmic traversal advantage for wide ranges and B's contiguous block-scan advantage for narrow ranges. The measurements support that trend; constants and cache behavior determine the crossover.
 
 ## Limitations and reproducibility
-TODO: arithmetic domain, peak memory, exact final release tag and fresh-clone command output.
+- The recorded campaign measures 100,000 elements and 100,000 mixed operations, with five repetitions at each width. It is not a one-million-operation timing campaign.
+- Peak memory was not measured. The exact final release tag and fresh-clone submission transcript remain release-time tasks.
+- Reproduce the figures from the committed CSV with `python3 results/scripts/plot_results.py results/raw/width_sweep.csv results/figures`.
+
+## Member 5: adversarial inputs and verification (16 November 2026)
+
+Anagh Singla (250001006) owns `adversary/` and D5. The `generate` function emits
+all three required families plus a range-width sweep. Maximum-push probes are
+preceded by a whole-array reset; negative-gain probes observe extrema before a
+second negation could hide a missing swap; block-friendly operations cover one
+aligned block, including the last short block. See `adversary/README.md` for the
+commands and `docs/derivations/D5_250001006.pdf` for the proof.
+
+Deterministic counter evidence from `tests/adversary_test.cpp` (GCC 14.2.0,
+CMake 4.4.5, Release build, seed 253):
+
+| Case | Predicted count | Verified count |
+|---|---:|---:|
+| n=16, primed partial query or update | 7 pushes | 7 pushes |
+| n=1024, primed partial query or update | 19 pushes | 19 pushes |
+| n=16384, primed partial query or update | 27 pushes | 27 pushes |
+| n=50, one aligned B block per operation | 1 full block, 0 partial elements | 1 full block, 0 partial elements |
+
+The `2*h-1` prediction was already recorded in D5 on the branch before this
+review. Exhaustive ranges for sizes 1 through 48 confirm the generated query
+achieves the maximum for those sizes. Repeated power-of-two checks reach
+n=16384. The counter unit is one parent tag propagated to both children.
+
+All 8 CTest checks passed. This includes 240 small differential/reproducibility
+cases against independent test-only array arithmetic, invariant audits, CLI
+checks, and generation of eight workloads with n=1000000 and q=1000000
+(four families, two modes). The scale check validates generation and ranges;
+it does not replay one million operations against the production Oracle.
+
+These are correctness/counter checks, not timing benchmarks. The Analyst must
+still measure A/B timings over at least five runs, report spread, and establish
+whether the block-friendly pattern wins on the stated machine. Team-wide
+pipeline work and final report export remain with their respective owners.

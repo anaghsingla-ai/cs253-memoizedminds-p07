@@ -8,7 +8,7 @@ Language C++17. Public headers: include/cs253/. Ownership is listed in README.md
 - Values and tag coefficients are signed 64-bit. Residues are canonical [0,998244353).
 - exact_extrema mode permits a only in {-1,0,1}; reject other gains with std::invalid_argument before mutation. Values/min/max remain mathematical signed integers; sum is modular. Caller/generators must ensure all exact results and composed offsets fit int64; overflow is outside the supported workload domain. Use checked or wider intermediates, including negation of INT64_MIN. Document implementation bounds before benchmarking.
 - modular_sum mode permits arbitrary int64 a,b and initial values, reduced modulo the prime BEFORE arithmetic. Minimum and maximum are always absent: modular residues do not retain exact ordering. No midstream mode switch: build starts a new dataset.
-- Empty result: length=0, sum_mod=0, minimum/maximum absent in either mode. Nonempty exact result has both extrema. build replaces all state and resets counters. **Open contract discrepancy:** `size()` and `mode()` are declared `noexcept`, but the original text required a successful build before calling them. The Architect proposes that `size()` return 0 and `mode()` return the default mode before build; confirm with both structure owners. `update()` and `query()` (including empty intervals) must throw `std::logic_error` before `build()`.
+- Empty result: length=0, sum_mod=0, minimum/maximum absent in either mode. Nonempty exact result has both extrema. build replaces all state and resets counters. `size()` and `mode()` require a successful `build()` and throw `std::logic_error` before build. They are deliberately not `noexcept`, so the contract can be enforced without terminating the process. `update()` and `query()` (including empty intervals) also throw `std::logic_error` before `build()`. This behavior is implemented and covered by contract/Oracle tests; structure-owner sign-off is still required.
 - Separate modes are a team design choice resolving the PDF's distinct sum/extrema guarantees. Confirm against any examiner-provided input format; no such format is specified in the PDF.
 
 ## Operations and composition
@@ -74,13 +74,13 @@ CSV schema is in results/README.md. No timing/throughput values may be fabricate
 
 ## Application CLI (Architect implementation)
 - `calibration --help` prints usage; `--status` reports which components are ready and which are blocked.
-- `calibration --run PATH --structure A|B|both` parses one CS253_V1 workload and runs Structure A,
-  Structure B, or both. `both` compares all returned query aggregates and exits nonzero on mismatch.
-- The Oracle selector is intentionally unavailable until the Oracle owner supplies its implementation.
-- `calibration --all` runs the available A/B sample application smoke check. It exits with status 3
-  and names the missing Oracle, Adversary and Analyst modules; it must not claim the complete pipeline
-  passed. Once those modules are delivered, the Architect integrates them and changes `--all` to run
-  the complete differential campaign, adversarial workloads, application and every benchmark.
+- `calibration --run PATH --structure A|B|oracle|both` parses one CS253_V1 workload and runs Structure A,
+  Structure B, or both. `both` compares A, B and Oracle query aggregates and exits nonzero on mismatch.
+- `calibration --run PATH --structure A|B|oracle|both` supports the independent Oracle selector. `both` runs A, B and Oracle and compares every query aggregate.
+- `calibration --menu` opens a stateful terminal workbench for loading/saving CS253_V1 workloads,
+  generating adversarial workloads, selecting A/B/Oracle, running differential tests and exporting
+  five-repetition benchmark CSV. `calibration --all` compares A/B/Oracle on the sample workload and
+  runs the integrated five-repetition benchmark smoke campaign.
 - Exactly one command is accepted per invocation. Invalid flags, missing file names and unknown
   structures produce an informative message on stderr and a nonzero exit code.
 - Query output is stable and machine-readable: `Q <zero-based-query-number> LEN <length> SUM <canonical-residue> MIN <integer|NA> MAX <integer|NA>`.
@@ -103,4 +103,4 @@ CSV schema is in results/README.md. No timing/throughput values may be fabricate
 - `app/main.cpp` implements `--help`, `--status`, `--run PATH --structure A|B|both` and a deliberately incomplete `--all` gate.
 - `tests/app_test.cpp` covers parser, serializer, replay and edge cases; `tests/check_cli.cmake` covers the command-line behavior.
 - `docs/derivations/D3.md` and `D3.pdf` contain the Architect proof. The author name and team approval remain to be supplied.
-- The full `--all` pipeline remains blocked by Oracle, Adversary and Analyst work; no full-scale run or benchmark is claimed.
+- The Oracle implementation, differential harness, Adversary generator and benchmark implementation are integrated. The recorded wide-range benchmark campaign is stored separately in `results/raw/width_sweep.csv`.
