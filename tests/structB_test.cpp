@@ -1,7 +1,7 @@
-// Algorithm tests for Structure B (SqrtDecomposition).
-// ArrayOracle is not implemented yet (placeholder), so this file carries its own minimal
-// independent plain-array reference (RefArray). It shares no arithmetic with the structure.
-// Once the Oracle owner lands ArrayOracle, add it as a second comparator; do not delete this.
+
+
+
+
 #include "cs253/sqrt_decomposition.hpp"
 #include "cs253/sqrt_config.hpp"
 #include <cstdint>
@@ -25,7 +25,7 @@ int failures = 0;
 
 struct RefArray {
     Mode mode;
-    std::vector<__int128_t> v;  // exact: true values; modular: residues
+    std::vector<__int128_t> v;
     static std::int64_t red(__int128_t x) {
         std::int64_t r = static_cast<std::int64_t>(x % 998244353);
         return r < 0 ? r + 998244353 : r;
@@ -66,7 +66,7 @@ std::vector<Value> make_initial(std::mt19937_64& g, std::size_t n, Mode m) {
     std::vector<Value> r(n);
     for (auto& x : r) {
         if (m == Mode::exact_extrema) x = (Value)(g() % 2001) - 1000;
-        else x = (Value)g();  // full int64 range, including negatives
+        else x = (Value)g();
     }
     return r;
 }
@@ -80,14 +80,14 @@ AffineTag make_tag(std::mt19937_64& g, Mode m) {
         case 0: return {INT64_MIN, INT64_MIN};
         case 1: return {INT64_MAX, INT64_MIN};
         case 2: return {-1, (Value)g()};
-        case 3: return {998244353, 998244353LL * 3};  // reduces to (0,0)
+        case 3: return {998244353, 998244353LL * 3};
         default: return {(Value)g(), (Value)g()};
     }
 }
 
 Range make_range(std::mt19937_64& g, std::size_t n, std::size_t b) {
     std::size_t lo, hi;
-    if (g() % 3 == 0 && b > 0) {  // bias towards block boundaries +-1
+    if (g() % 3 == 0 && b > 0) {
         auto pick = [&]() {
             std::size_t k = g() % (n / b + 2);
             std::size_t p = k * b;
@@ -105,7 +105,7 @@ Range make_range(std::mt19937_64& g, std::size_t n, std::size_t b) {
     return {lo, hi};
 }
 
-// Differential run. sz = block-size override (0 = automatic).
+
 void differential(std::uint64_t seed, std::size_t n, Mode m, std::size_t block_override, int ops) {
     set_sqrt_block_size(block_override);
     std::mt19937_64 g(seed);
@@ -139,7 +139,7 @@ void differential(std::uint64_t seed, std::size_t n, Mode m, std::size_t block_o
             return;
         }
     }
-    // Whole-array and every single element at the end.
+
     CHECK(same(s.query({0, n}), ref.query({0, n})));
     for (std::size_t i = 0; i < n; ++i) CHECK(same(s.query({i, i + 1}), ref.query({i, i + 1})));
     set_sqrt_block_size(0);
@@ -147,7 +147,7 @@ void differential(std::uint64_t seed, std::size_t n, Mode m, std::size_t block_o
 
 void test_contract_examples() {
     set_sqrt_block_size(0);
-    // +3 then negate => -x-3 ; negate then +3 => -x+3 (single element, all mapped identically)
+
     for (std::size_t n : {1u, 5u, 9u}) {
         std::vector<Value> init(n, 10);
         SqrtDecomposition a, c;
@@ -160,13 +160,13 @@ void test_contract_examples() {
         CHECK(*a.query({0, n}).minimum == -13 && *a.query({0, n}).maximum == -13);
         CHECK(*c.query({0, n}).minimum == -7 && *c.query({0, n}).maximum == -7);
     }
-    // reset then shift, and negative gain swapping extrema
+
     SqrtDecomposition s;
     s.build({5, -2, 9, 0, 7, 3, 1}, Mode::exact_extrema);
-    s.update({1, 6}, {-1, 0});  // partial blocks, block size 3
+    s.update({1, 6}, {-1, 0});
     Aggregate q = s.query({0, 7});
     CHECK(*q.minimum == -9 && *q.maximum == 5);
-    s.update({0, 7}, {0, 4});  // reset
+    s.update({0, 7}, {0, 4});
     q = s.query({0, 7});
     CHECK(*q.minimum == 4 && *q.maximum == 4 && q.sum_mod == 28);
     s.update({2, 5}, {1, -10});
@@ -184,7 +184,7 @@ void test_errors_and_edges() {
     try { s.query({0, 0}); } catch (const std::logic_error&) { threw = true; }
     CHECK(threw);
 
-    s.build({}, Mode::exact_extrema);  // empty build
+    s.build({}, Mode::exact_extrema);
     CHECK(s.size() == 0);
     Aggregate e = s.query({0, 0});
     CHECK(e.length == 0 && e.sum_mod == 0 && !e.minimum && !e.maximum);
@@ -204,13 +204,13 @@ void test_errors_and_edges() {
     threw = false;
     try { s.update({0, 5}, {2, 0}); } catch (const std::invalid_argument&) { threw = true; }
     CHECK(threw);
-    // nothing mutated by the failed calls
+
     Aggregate q = s.query({0, 5});
     CHECK(*q.minimum == 1 && *q.maximum == 5 && q.sum_mod == 15);
     Aggregate z = s.query({2, 2});
     CHECK(z.length == 0 && !z.minimum);
 
-    // modular mode: any gain accepted, extrema absent, build resets counters
+
     s.build({1, 2, 3}, Mode::modular_sum);
     s.update({0, 3}, {INT64_MIN, INT64_MAX});
     q = s.query({0, 3});
@@ -222,14 +222,14 @@ void test_errors_and_edges() {
     CHECK(s.counters().full_blocks == 1);
     s.reset_counters();
     CHECK(s.counters().full_blocks == 0 && s.counters().tag_compositions == 0);
-    // exact overflow is reported, not wrapped
+
     s.build({INT64_MIN}, Mode::exact_extrema);
     threw = false;
     try { s.update({0, 1}, {-1, 0}); } catch (const std::overflow_error&) { threw = true; }
     CHECK(threw);
 }
 
-}  // namespace
+}
 
 int main() {
     test_contract_examples();
@@ -237,18 +237,18 @@ int main() {
 
     int runs = 0;
     for (Mode m : {Mode::exact_extrema, Mode::modular_sum}) {
-        // every size 1..70 (covers perfect squares, primes, short last block), auto block size
+
         for (std::size_t n = 1; n <= 70; ++n) {
             differential(1000 + n, n, m, 0, 300);
             ++runs;
         }
-        // explicit block sizes incl. 1 (all full blocks), n (single block) and non-divisors
+
         for (std::size_t b : {1u, 2u, 3u, 7u, 16u, 50u, 1000u})
             for (std::size_t n : {1u, 2u, 15u, 16u, 17u, 49u, 50u, 51u, 100u, 257u}) {
                 differential(77 * b + n, n, m, b, 400);
                 ++runs;
             }
-        differential(424242, 5000, m, 0, 3000);  // larger, non-power-of-two
+        differential(424242, 5000, m, 0, 3000);
         ++runs;
     }
     std::printf("structB_test: %d differential runs, %d failures\n", runs, failures);

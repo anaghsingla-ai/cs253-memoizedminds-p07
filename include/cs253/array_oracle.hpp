@@ -3,7 +3,7 @@
 #include <memory>
 namespace cs253 {
 struct InvariantAccess;
-// Declaration only. Owning member supplies Impl and all method definitions.
+
 class ArrayOracle final : public RangeStructure {
 public:
     ArrayOracle();
@@ -23,4 +23,4 @@ private:
     std::unique_ptr<Impl> impl_;
     friend struct InvariantAccess;
 };
-} // namespace cs253
+}

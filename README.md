@@ -8,9 +8,9 @@ Source: CS253_MA253_Lab_Projects.docx.pdf, common rules pp. 1–4 and Project 7 
 Evaluation: **17 November 2026**. Submission: **21 November 2026**.
 
 ## Current status
-Repository scaffold only. No structure, oracle, generator, replay or benchmark is implemented.
-CMake Release build and CTest scaffold checks pass. These checks do not establish algorithm correctness.
-Concrete classes are declarations only: instantiating one will fail to link until its owner implements it.
+Updated snapshot: Structure A and Structure B have implementations. The Architect parser, serializer, replay engine and CLI are implemented and tested. The Oracle differential harness, Adversary generators and Analyst benchmark harness are still placeholders.
+The tests cover the shared contract smoke check, Structure B, parser/serializer/replay through A and B, and CLI integration. They do not replace the required one-million-operation differential campaign or full-scale benchmarks. The sample workload is `tests/cases/architect_sample.txt`.
+Architect v1 interface review is documented in [docs/ARCHITECT_REVIEW.md](docs/ARCHITECT_REVIEW.md), but **not frozen until the six owners sign off**.
 No team member names or personal role assignments have been assumed.
 
 ## Six owners (fill names and freeze at first checkpoint)
@@ -35,13 +35,25 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ./build/calibration --status
 ```
+Application examples:
+```sh
+./build/calibration --help
+./build/calibration --status
+./build/calibration --run tests/cases/architect_sample.txt --structure A
+./build/calibration --run tests/cases/architect_sample.txt --structure B
+./build/calibration --run tests/cases/architect_sample.txt --structure both
+```
+
 One-command full workflow entry point:
 ```sh
 bash scripts/run_all.sh
 ```
-It currently stops with exit code 2 at the explicitly unimplemented pipeline. Once implemented,
---all must run differential tests, application and EVERY benchmark, including full scale.
-Never turn the placeholder into a successful no-op. The equivalent CMake target is all_checks.
+The build and current tests run first. `calibration --all` then runs the available A/B application
+smoke workload and exits with code 3 while Oracle differential testing, Adversary generators and
+Analyst benchmarks are missing. This is an intentional blocker, not a successful full-pipeline run.
+Once those owner modules are delivered, `--all` must execute the complete differential campaign,
+application and every benchmark at the required scale. Never turn the blocker into a false pass.
+The equivalent CMake target is `all_checks`.
 
 ## Team workflow and release
 Create one shared GitHub repository; give the instructor read access from first checkpoint.
@@ -49,8 +61,8 @@ Each member works on their own branch, makes genuine commits across the project 
 and merges via a pull request reviewed by another member. Do not use bulk uploads as history.
 Suggested branches: member/struct-a, member/struct-b, member/architect, member/oracle,
 member/adversary, member/analyst. Repository: https://github.com/anaghsingla-ai/CS253-Lazy-Propagation.
-Setup branch: setup/cpp-team-scaffold; changes await team review before merging to main.
-Record names and GitHub handles in this table before work begins.
+The repository already contains setup and Structure B changes; check the current remote before merging additional work.
+Record names and GitHub handles in this table, and obtain explicit v1 interface sign-off before further integration.
 Only tag **final** after all modules, PDFs, tests and measurements are complete. Hidden tests
 and the live demonstration use a fresh clone of that release; later commits are ignored.
 
@@ -59,3 +71,10 @@ REPORT.md for results template, TOOLS.md for disclosure, docs/derivations/ for D
 
 ## Subsequent work
 Use this same repository for future changes; do not recreate it from a ZIP. Fetch current branch state, inspect teammates’ changes, and work on an owned feature branch. Never overwrite another member’s code or push directly to main without approval.
+
+## Architect Parts 2–4
+`app_core` implements CS253_V1 parsing/serialization and replay through `RangeStructure&`. `calibration` is linked to app_core and both current structures. Its `--run` command reports query aggregates, elapsed operation-loop time, operations/second and counters. `--structure both` compares A/B query results.
+
+`--all` currently runs the A/B sample application check and returns code 3 with an explicit blocker until the Oracle, Adversary and Analyst modules are implemented. It does not claim the full assignment pipeline has passed. Parser/replay resource guards limit each workload to five million elements and five million operations.
+
+Architect D3 is fully drafted in `docs/derivations/D3.md` and exported to `docs/derivations/D3.pdf`; the author must insert their name and review the proof before submission.

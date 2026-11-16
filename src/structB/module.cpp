@@ -1,5 +1,5 @@
-// Structure B: square-root decomposition with per-block affine lazy tags.
-// Design, invariants and complexity: src/structB/DESIGN.md. Proofs: docs/derivations/D2.md.
+
+
 #include "cs253/sqrt_decomposition.hpp"
 #include "cs253/sqrt_config.hpp"
 #include <algorithm>
@@ -32,24 +32,24 @@ bool is_identity(const AffineTag& t) { return t.a == 1 && t.b == 0; }
 
 bool exact_gain_ok(Value a) { return a == -1 || a == 0 || a == 1; }
 
-}  // namespace
+}
 
 void set_sqrt_block_size(std::size_t block_size) noexcept { g_block_setting = block_size; }
 std::size_t sqrt_block_size_setting() noexcept { return g_block_setting; }
 
 struct SqrtDecomposition::Impl {
-    // Logical value of element i = tag(raw[i]) where tag is its block's pending tag.
-    // Block aggregates (sum, mn, mx) are LOGICAL: they already include the pending tag.
+
+
     struct Block {
-        Value a = 1, b = 0;       // pending tag x -> a*x+b (modular mode: residues)
-        Residue sum = 0;          // logical sum mod P
-        Value mn = 0, mx = 0;     // logical extrema (exact mode only)
+        Value a = 1, b = 0;
+        Residue sum = 0;
+        Value mn = 0, mx = 0;
     };
 
     bool built = false;
     Mode md = Mode::exact_extrema;
     std::size_t n = 0, bsize = 1, nblocks = 0;
-    std::vector<Value> raw;       // exact: raw values; modular: canonical residues
+    std::vector<Value> raw;
     std::vector<Block> blocks;
     Counters cnt;
 
@@ -57,7 +57,7 @@ struct SqrtDecomposition::Impl {
     std::size_t bstart(std::size_t k) const { return k * bsize; }
     std::size_t bend(std::size_t k) const { return std::min(n, (k + 1) * bsize); }
 
-    // newer AFTER older: (a2*a1, a2*b1+b2)
+
     AffineTag compose(AffineTag newer, AffineTag older) {
         ++cnt.tag_compositions;
         if (exact())
@@ -70,12 +70,12 @@ struct SqrtDecomposition::Impl {
         return norm(Wide(t.a) * x + t.b);
     }
 
-    // Transform extrema of a set by gain a in {-1,0,1} then offset b.
+
     static void map_extrema(Value a, Value b, Value mn, Value mx, Value& omn, Value& omx) {
         if (a == 1) {
             omn = checked(Wide(mn) + b);
             omx = checked(Wide(mx) + b);
-        } else if (a == -1) {  // order reverses: old max becomes new min
+        } else if (a == -1) {
             omn = checked(-Wide(mx) + b);
             omx = checked(-Wide(mn) + b);
         } else {
@@ -83,14 +83,14 @@ struct SqrtDecomposition::Impl {
         }
     }
 
-    // Tag t applied to a set of `len` elements with raw sum S (Wide) and raw extrema.
+
     void map_aggregate(AffineTag t, Wide raw_sum, std::size_t len, Value rmn, Value rmx,
                        Residue& sum, Value& mn, Value& mx) const {
         sum = norm(Wide(t.a) * raw_sum + Wide(t.b) * Wide(len));
         if (exact()) map_extrema(t.a, t.b, rmn, rmx, mn, mx);
     }
 
-    // Recompute a block's logical aggregate from raw[] and its pending tag, read-only.
+
     void scan(std::size_t lo, std::size_t hi, Wide& s, Value& mn, Value& mx) const {
         s = 0;
         if (exact()) {
@@ -112,7 +112,7 @@ struct SqrtDecomposition::Impl {
         std::size_t bs = g_block_setting;
         if (bs == 0) {
             bs = static_cast<std::size_t>(std::ceil(std::sqrt(static_cast<double>(nn))));
-            while (bs * bs < nn) ++bs;  // guard against FP rounding
+            while (bs * bs < nn) ++bs;
         }
         if (bs < 1) bs = 1;
         std::vector<Value> r;
@@ -141,7 +141,7 @@ struct SqrtDecomposition::Impl {
         if (r.begin > r.end || r.end > n) throw std::out_of_range(what);
     }
 
-    // Full-block update: O(1). Aggregates updated by formula, tag composed (newer after older).
+
     void full_update(std::size_t k, AffineTag t) {
         ++cnt.full_blocks;
         Block& B = blocks[k];
@@ -149,11 +149,11 @@ struct SqrtDecomposition::Impl {
         Residue new_sum = norm(Wide(norm(t.a)) * B.sum + Wide(norm(t.b)) * Wide(len));
         Value nmn = B.mn, nmx = B.mx;
         if (exact()) map_extrema(t.a, t.b, B.mn, B.mx, nmn, nmx);
-        AffineTag nt = compose(t, {B.a, B.b});  // may throw before any mutation of B
+        AffineTag nt = compose(t, {B.a, B.b});
         B.sum = new_sum; B.mn = nmn; B.mx = nmx; B.a = nt.a; B.b = nt.b;
     }
 
-    // Partial update: one fused pass = materialize pending tag + apply new tag on [lo,hi) + rebuild.
+
     void partial_update(std::size_t k, std::size_t lo, std::size_t hi, AffineTag t) {
         Block& B = blocks[k];
         std::size_t bs = bstart(k), be = bend(k);
@@ -176,7 +176,7 @@ struct SqrtDecomposition::Impl {
         if (exact()) { B.mn = mn; B.mx = mx; }
     }
 
-    // Partial query: read-only; applies the pending tag to the raw aggregate of the overlap.
+
     Aggregate partial_query(std::size_t k, std::size_t lo, std::size_t hi) {
         const Block& B = blocks[k];
         Wide s; Value rmn = 0, rmx = 0;
@@ -260,7 +260,7 @@ struct SqrtDecomposition::Impl {
             for (std::size_t i = bstart(k); i < bend(k); ++i) {
                 Value x = raw[i];
                 if (!exact() && (x < 0 || x >= modulus)) bad("raw residue not canonical" + tag);
-                Wide y = Wide(B.a) * x + B.b;  // logical value
+                Wide y = Wide(B.a) * x + B.b;
                 if (exact()) {
                     if (y < std::numeric_limits<Value>::min() || y > std::numeric_limits<Value>::max()) { overflow = true; break; }
                     mn = std::min(mn, static_cast<Value>(y));
@@ -288,4 +288,4 @@ Counters SqrtDecomposition::counters() const noexcept { return impl_->cnt; }
 void SqrtDecomposition::reset_counters() noexcept { impl_->cnt = {}; }
 InvariantReport SqrtDecomposition::check_invariants() const { return impl_->check(); }
 
-}  // namespace cs253
+}

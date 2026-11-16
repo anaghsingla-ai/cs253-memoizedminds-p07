@@ -11,14 +11,14 @@ namespace {
 
 using Wide = __int128_t;
 
-// Normalize an integer modulo 998244353.
+
 Residue norm(Wide x) {
     x %= modulus;
     if (x < 0) x += modulus;
     return static_cast<Residue>(x);
 }
 
-// Convert to int64_t after checking overflow.
+
 Value checked(Wide x) {
     if (x < std::numeric_limits<Value>::min() ||
         x > std::numeric_limits<Value>::max()) {
@@ -33,10 +33,10 @@ bool identity(AffineTag t) {
     return t.a == 1 && t.b == 0;
 }
 
-// Apply newer AFTER older.
-// older: x -> a1*x + b1
-// newer: x -> a2*x + b2
-// result: x -> (a2*a1)*x + (a2*b1+b2)
+
+
+
+
 AffineTag compose(AffineTag newer,
                   AffineTag older,
                   Mode mode) {
@@ -53,7 +53,7 @@ AffineTag compose(AffineTag newer,
     };
 }
 
-// Merge two query results.
+
 Aggregate merge_aggregates(
     const Aggregate& left,
     const Aggregate& right
@@ -80,12 +80,12 @@ Aggregate merge_aggregates(
     return out;
 }
 
-} // anonymous namespace
+}
 
 
-// -----------------------------------------
-// BUILD
-// -----------------------------------------
+
+
+
 
 void LazySegmentTree::build(
     const std::vector<Value>& initial,
@@ -110,7 +110,7 @@ void LazySegmentTree::build(
         );
     }
 
-    // Building is not counted as a workload operation.
+
     stats = {};
 }
 
@@ -138,9 +138,9 @@ void LazySegmentTree::build_tree(
 }
 
 
-// -----------------------------------------
-// BASIC GETTERS AND COUNTERS
-// -----------------------------------------
+
+
+
 
 std::size_t LazySegmentTree::size() const noexcept {
     return n;
@@ -159,9 +159,9 @@ void LazySegmentTree::reset_counters() noexcept {
 }
 
 
-// -----------------------------------------
-// PULL: MERGE CHILDREN
-// -----------------------------------------
+
+
+
 
 void LazySegmentTree::pull(int v) {
     tree[v].sum = norm(
@@ -185,9 +185,9 @@ void LazySegmentTree::pull(int v) {
 }
 
 
-// -----------------------------------------
-// APPLY: UPDATE ONE WHOLE NODE
-// -----------------------------------------
+
+
+
 
 void LazySegmentTree::apply(
     int v, int tl, int tr, AffineTag tag
@@ -199,8 +199,8 @@ void LazySegmentTree::apply(
         );
     }
 
-    // Update modular sum:
-    // newSum = a * oldSum + b * length
+
+
     Residue new_sum = norm(
         Wide(norm(tag.a)) * tree[v].sum +
         Wide(norm(tag.b)) * (tr - tl + 1)
@@ -211,7 +211,7 @@ void LazySegmentTree::apply(
 
     if (current_mode == Mode::exact_extrema) {
         if (tag.a == 1) {
-            // x -> x + b
+
             new_min = checked(
                 Wide(tree[v].mn) + tag.b
             );
@@ -220,8 +220,8 @@ void LazySegmentTree::apply(
             );
         }
         else if (tag.a == -1) {
-            // x -> -x + b
-            // Minimum and maximum swap.
+
+
             new_min = checked(
                 -Wide(tree[v].mx) + tag.b
             );
@@ -230,13 +230,13 @@ void LazySegmentTree::apply(
             );
         }
         else {
-            // x -> b
+
             new_min = tag.b;
             new_max = tag.b;
         }
     }
 
-    // Combine pending tags in the correct order.
+
     AffineTag new_lazy = compose(
         tag, tree[v].lazy, current_mode
     );
@@ -253,9 +253,9 @@ void LazySegmentTree::apply(
 }
 
 
-// -----------------------------------------
-// PUSH: PROPAGATE LAZY TAG
-// -----------------------------------------
+
+
+
 
 void LazySegmentTree::push(
     int v, int tl, int tr
@@ -270,16 +270,16 @@ void LazySegmentTree::push(
     apply(2 * v, tl, tm, tag);
     apply(2 * v + 1, tm + 1, tr, tag);
 
-    // Reset parent's pending tag.
+
     tree[v].lazy = {1, 0};
 
     ++stats.push_downs;
 }
 
 
-// -----------------------------------------
-// RECURSIVE RANGE UPDATE
-// -----------------------------------------
+
+
+
 
 void LazySegmentTree::update_tree(
     int v, int tl, int tr,
@@ -287,7 +287,7 @@ void LazySegmentTree::update_tree(
 ) {
     ++stats.nodes_visited;
 
-    // Complete overlap.
+
     if (l <= tl && tr <= r) {
         apply(v, tl, tr, tag);
         return;
@@ -313,9 +313,9 @@ void LazySegmentTree::update_tree(
 }
 
 
-// -----------------------------------------
-// RECURSIVE RANGE QUERY
-// -----------------------------------------
+
+
+
 
 Aggregate LazySegmentTree::query_tree(
     int v, int tl, int tr,
@@ -323,7 +323,7 @@ Aggregate LazySegmentTree::query_tree(
 ) {
     ++stats.nodes_visited;
 
-    // Complete overlap.
+
     if (l <= tl && tr <= r) {
         Aggregate out;
 
@@ -371,9 +371,9 @@ Aggregate LazySegmentTree::query_tree(
 }
 
 
-// -----------------------------------------
-// PUBLIC UPDATE
-// -----------------------------------------
+
+
+
 
 void LazySegmentTree::update(
     Range range, AffineTag tag
@@ -392,7 +392,7 @@ void LazySegmentTree::update(
         );
     }
 
-    // Empty ranges are valid.
+
     if (range.begin == range.end) return;
 
     if (current_mode == Mode::modular_sum) {
@@ -400,7 +400,7 @@ void LazySegmentTree::update(
         tag.b = norm(tag.b);
     }
 
-    // Convert [begin, end) to inclusive [l, r].
+
     update_tree(
         1,
         0,
@@ -412,9 +412,9 @@ void LazySegmentTree::update(
 }
 
 
-// -----------------------------------------
-// PUBLIC QUERY
-// -----------------------------------------
+
+
+
 
 Aggregate LazySegmentTree::query(Range range) {
     if (range.begin > range.end ||
@@ -438,9 +438,9 @@ Aggregate LazySegmentTree::query(Range range) {
 }
 
 
-// -----------------------------------------
-// INVARIANT CHECKING
-// -----------------------------------------
+
+
+
 
 InvariantReport LazySegmentTree::check_invariants() const {
     InvariantReport report{true, {}};
@@ -455,7 +455,7 @@ InvariantReport LazySegmentTree::check_invariants() const {
 
     if (n == 0) return report;
 
-    // Check without pushing lazy tags.
+
     auto inspect = [&](auto&& self,
                        int v, int tl, int tr) -> void {
         const Node& node = tree[v];
@@ -571,4 +571,4 @@ InvariantReport LazySegmentTree::check_invariants() const {
     return report;
 }
 
-} // namespace cs253
+}
