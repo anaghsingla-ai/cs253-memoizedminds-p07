@@ -34,7 +34,7 @@ target_link_libraries(adversary_generate PRIVATE cs253_adversary)
 
 # Main calibration application.
 add_executable(calibration app/main.cpp)
-target_link_libraries(calibration PRIVATE app_core range_structures oracle_core)
+target_link_libraries(calibration PRIVATE app_core range_structures oracle_core bench_core cs253_adversary)
 target_compile_definitions(calibration PRIVATE
     CS253_SAMPLE_WORKLOAD_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/cases/architect_sample.txt"
 )
