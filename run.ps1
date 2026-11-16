@@ -49,7 +49,7 @@ if ($needsConfigure) {
 }
 
 Write-Host "[2/3] Building calibration application..." -ForegroundColor Cyan
-& cmake --build $buildDir --target calibration --config Release --parallel
+& cmake --build $buildDir --config Release --parallel
 if ($LASTEXITCODE -ne 0) { throw "Build failed." }
 
 if (-not (Test-Path $exe)) {
