@@ -104,12 +104,33 @@ This mode supports general affine coefficients. Minimum and maximum queries are 
 
 ## 5. Requirements
 
-- C++17 compatible compiler
-- CMake
-- Make
-- Bash (for the provided shell scripts)
+- C++17 compatible compiler (GCC/MinGW, Clang, or MSVC)
+- CMake 3.16 or newer
+- A compatible build tool (MinGW Make, Make, Ninja, or Visual Studio build tools)
+- No third-party C++ libraries are required; the implementation uses the C++ standard library.
 
-## 6. Build Instructions
+The repository includes a `requirements.txt` file as a convenient checklist of these **native system requirements**. It is not a Python dependency file, so do not run `pip install -r requirements.txt`.
+
+## 6. One-Command Build and Run (Windows)
+
+Open PowerShell in the repository root and run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass; .\\run.ps1
+```
+
+This automatically configures CMake (using MinGW Make when available), builds the project, and runs the 100,000-element demonstration workload against Structure A, Structure B, and the Oracle.
+
+Other modes:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass; .\\run.ps1 -Mode Menu
+Set-ExecutionPolicy -Scope Process Bypass; .\\run.ps1 -Mode Tests
+```
+
+The first run requires the native tools listed above to already be installed and available on PATH. The script does not install a C++ compiler or CMake for you.
+
+## 7. Manual Build Instructions
 
 From the repository root:
 
@@ -120,7 +141,7 @@ cmake --build build -j
 
 The executable is generated in the `build` directory.
 
-## 7. Running the Application
+## 8. Running the Application
 
 ### Interactive Menu
 
@@ -176,7 +197,7 @@ bash scripts/run_all.sh
 
 Refer to `--help` for the exact command-line options supported by the current build.
 
-## 8. Workload Format
+## 9. Workload Format
 
 Workloads describe the initial array and the sequence of operations to perform.
 
@@ -196,7 +217,13 @@ The repository includes:
 tests/cases/architect_sample.txt
 ```
 
-The sample demonstrates affine updates and range aggregate queries.
+The small sample demonstrates affine updates and range aggregate queries. For a larger demonstration, use:
+
+```text
+tests/cases/large_demo.txt
+```
+
+This deterministic workload contains 100,000 initial elements and mixed full-range, overlapping, and partial-range updates and queries. It is designed to make the A/B/Oracle comparison more representative than the tiny correctness sample.
 
 For an initial array:
 
@@ -236,7 +263,7 @@ The resulting aggregates are:
 
 These values can be used to verify the correctness of the sample workload execution.
 
-## 9. Testing and Correctness
+## 10. Testing and Correctness
 
 The project uses the brute-force Oracle as a reference implementation.
 
@@ -258,7 +285,7 @@ Run the available test workflow using:
 bash scripts/run_all.sh
 ```
 
-## 10. Benchmarking
+## 11. Benchmarking
 
 The project includes workload execution and benchmark result export.
 
@@ -273,7 +300,7 @@ CSV output is provided for further analysis and visualization.
 
 Correctness testing and performance benchmarking serve different purposes: passing differential tests establishes agreement with the reference implementation for tested workloads, while benchmarking evaluates execution cost.
 
-## 11. Repository Structure
+## 12. Repository Structure
 
 The main project areas are:
 
@@ -287,7 +314,7 @@ The main project areas are:
 | `README.md` | Project overview and usage instructions |
 | `CMakeLists.txt` | CMake build configuration |
 
-## 12. Team Members and Responsibilities
+## 13. Team Members and Responsibilities
 
 The project is divided into the following responsibilities:
 
@@ -300,7 +327,7 @@ The project is divided into the following responsibilities:
 | Anagh | Adversary — Adversarial workload generation and correctness stress testing |
 | Ranveer | Analyst — Benchmarking, performance analysis, and derivations |
 
-## 13. Project Documentation
+## 14. Project Documentation
 
 Additional design and implementation documentation is available in the `docs/` directory.
 
@@ -308,7 +335,7 @@ The documentation complements the source code and describes the architecture, im
 
 ---
 
-## 14. Conclusion
+## 15. Conclusion
 
 This project demonstrates how lazy propagation can efficiently support range updates when the updates form a composable family of transformations.
 
