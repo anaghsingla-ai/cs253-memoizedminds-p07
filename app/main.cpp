@@ -4,7 +4,10 @@
 #include "cs253/sqrt_decomposition.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -13,7 +16,15 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 #ifndef CS253_SAMPLE_WORKLOAD_PATH
 #define CS253_SAMPLE_WORKLOAD_PATH "tests/cases/architect_sample.txt"
@@ -21,6 +32,72 @@
 
 namespace {
 using namespace cs253;
+
+bool enable_terminal_colors(FILE* stream) {
+#ifdef _WIN32
+    const intptr_t handle_value = _get_osfhandle(_fileno(stream));
+    if (handle_value == -1) return false;
+    HANDLE handle = reinterpret_cast<HANDLE>(handle_value);
+    DWORD mode = 0;
+    if (!GetConsoleMode(handle, &mode)) return false;
+    return SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
+#else
+    return isatty(fileno(stream)) != 0;
+#endif
+}
+
+bool stdout_is_terminal() {
+    static const bool enabled = enable_terminal_colors(stdout);
+    return enabled;
+}
+
+bool stderr_is_terminal() {
+    static const bool enabled = enable_terminal_colors(stderr);
+    return enabled;
+}
+
+void print_status(const char* label, const std::string& message) {
+    const bool terminal = stdout_is_terminal();
+    const char* color = std::string(label) == "PASS" ? "\033[32m" :
+                        std::string(label) == "FAIL" ? "\033[31m" :
+                        "\033[33m";
+    if (terminal) std::cout << color;
+    std::cout << "[" << label << "]";
+    if (terminal) std::cout << "\033[0m";
+    std::cout << " " << message << '\\n';
+}
+
+class Spinner {
+public:
+    explicit Spinner(std::string message)
+        : active_(stderr_is_terminal()), message_(std::move(message)) {
+        if (!active_) return;
+        worker_ = std::thread([this] {
+            static const char frames[] = {'-', '\\\\', '|', '/'};
+            std::size_t frame = 0;
+            while (!stop_.load()) {
+                std::cerr << "\\r\\033[33m" << frames[frame++ % 4]
+                          << "\\033[0m " << message_ << std::flush;
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+        });
+    }
+
+    ~Spinner() {
+        stop_.store(true);
+        if (worker_.joinable()) worker_.join();
+        if (active_) std::cerr << "\\r\\033[2K" << std::flush;
+    }
+
+    Spinner(const Spinner&) = delete;
+    Spinner& operator=(const Spinner&) = delete;
+
+private:
+    std::atomic<bool> stop_{false};
+    bool active_;
+    std::string message_;
+    std::thread worker_;
+};
 
 void print_usage(std::ostream& out) {
     out << "CS253 calibration simulator\n"
@@ -136,26 +213,33 @@ void save_workload(const Workload& workload, const std::string& path) {
 int run_selected(const Workload& workload, const std::string& selected) {
     if (selected == "A") {
         LazySegmentTree structure;
-        print_result("A", replay(structure, workload), workload);
+        ReplayResult result;
+        { Spinner spinner("Running Structure A"); result = replay(structure, workload); }
+        print_result("A", result, workload);
         return 0;
     }
     if (selected == "B") {
         SqrtDecomposition structure;
-        print_result("B", replay(structure, workload), workload);
+        ReplayResult result;
+        { Spinner spinner("Running Structure B"); result = replay(structure, workload); }
+        print_result("B", result, workload);
         return 0;
     }
     if (selected == "oracle") {
         ArrayOracle structure;
-        print_result("ORACLE", replay(structure, workload), workload);
+        ReplayResult result;
+        { Spinner spinner("Running brute-force Oracle"); result = replay(structure, workload); }
+        print_result("ORACLE", result, workload);
         return 0;
     }
     if (selected == "both") {
         LazySegmentTree a;
         SqrtDecomposition b;
         ArrayOracle oracle;
-        const ReplayResult ra = replay(a, workload);
-        const ReplayResult rb = replay(b, workload);
-        const ReplayResult ro = replay(oracle, workload);
+        ReplayResult ra, rb, ro;
+        { Spinner spinner("Running Structure A"); ra = replay(a, workload); }
+        { Spinner spinner("Running Structure B"); rb = replay(b, workload); }
+        { Spinner spinner("Running brute-force Oracle"); ro = replay(oracle, workload); }
         print_result("A", ra, workload);
         print_result("B", rb, workload);
         print_result("ORACLE", ro, workload);
