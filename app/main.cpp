@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -17,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #ifdef _WIN32
@@ -444,7 +446,7 @@ int run_menu() {
                 }
             }
         } catch (const std::exception& error) {
-            std::cerr << "ERROR: " << error.what() << '\n';
+            print_status("FAIL", error.what());
         }
     }
 }
