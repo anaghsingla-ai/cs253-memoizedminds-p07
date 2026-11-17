@@ -1,6 +1,6 @@
 # Shared contract — review before implementation
 
-Status: **Architect v1 review candidate (12 November 2026)**. Existing structure owners must approve before this can be called frozen. See `docs/ARCHITECT_REVIEW.md` for open decisions and sign-off. Written before structures.
+Status: **Architect v1 review candidate (12 November 2026)**. Existing structure owners must approve before this can be called frozen. Written before structures.
 Language C++17. Public headers: include/cs253/. Ownership is listed in README.md.
 
 ## Values, ranges and modes
