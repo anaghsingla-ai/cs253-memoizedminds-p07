@@ -1,8 +1,7 @@
 # CS253 Project 7 — Lazy Propagation and What Composes
 
-**Team:** [Team name]  
+**Team:** Memoized Minds 
 **Course:** CS 253 / MA 253 — Data Structures and Algorithms Laboratory  
-**Semester:** [Semester]
 
 A C++17 implementation and experimental workbench for **range affine transformations** using lazy propagation and square-root decomposition.
 
