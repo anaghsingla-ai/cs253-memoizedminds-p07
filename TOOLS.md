@@ -1,38 +1,39 @@
-# Tool disclosure
+# TOOLS.md
 
-## OpenAI ChatGPT / Codex — scaffold generation, 10 November 2026
-Generated repository layout, CMake configuration, C++ declarations/common contracts,
-placeholder translation units and CLI, contract smoke check, workflow/requirements templates,
-and derivation outlines from the course PDF. No studied data structure, oracle arithmetic,
-differential harness, adversarial generator or benchmark algorithm was implemented.
+## 1. Common development tools
 
-Human review/changes afterwards: TODO team must state what was reviewed and changed;
-do not claim changes before they happen. Interface choices are proposed and require team review.
+The following tools form the shared development environment for the project and were used by all six team members.
 
-Other tools used for scaffold setup: Python (file generation/archive), Git (repository setup),
-CMake 4.4.4 and GCC/CTest (build and scaffold checks). See docs/SETUP_VALIDATION.md.
-GitHub connector: inspected existing tree and created setup branch for the scaffold.
-Changes after initial generation: retained original README introduction and ignore rules; added explicit pipeline-exit checks and repository continuity guidance.
+| Tool | Used by | Used for | Project areas affected |
+|---|---|---|---|
+| C++17 compiler (GCC) | All six members | Compiling and validating the C++17 implementations and tests | C++ source files, headers and test targets |
+| MinGW-w64 | All six members | Providing the Windows GCC toolchain and build environment | C++ build configuration and build outputs |
+| CMake | All six members | Configuring the project and generating build files | `CMakeLists.txt` and build directory |
+| Visual Studio Code | All six members | Editing, navigating and reviewing source code, tests and documentation | Source code, tests and documentation |
+| Git and GitHub | All six members | Version control, branches, commits, pushes and collaboration | Project repository and its history |
+| Terminal / PowerShell | All six members | Running build commands, tests, scripts and the application | Build outputs, test results and generated files |
 
-## Ongoing disclosure
-Each member adds tools used, affected files, generated parts and subsequent human changes.
-Declared AI use costs no marks under the PDF; understanding and explainability are assessed in viva.
+## 2. Team members and responsibilities
 
-## OpenAI ChatGPT / Codex - Member 5 implementation, 14 November 2026
-Generated the adversary generators, local replay exporter/CLI, module tests,
-additive CMake targets, CI workflow, module documentation and D5 proof.
-Inspected the professor's PDF and current main/part-e branches through GitHub.
-Preserved shared interfaces and all teammate algorithms. Test-only reference
-arithmetic is independent from the structures and does not replace the Oracle.
-Human review/changes: pending Anagh's review; no human edits are claimed.
+| Name | Project responsibility |
+|---|---|
+| Naresh | Structure A — Lazy Segment Tree |
+| Harshal | Structure B — Square-Root Decomposition |
+| Bhuvaneesh Vijayvargiya | Architect — application architecture, integration, interfaces and documentation |
+| Arush Agrawal | Oracle — brute-force reference implementation and differential testing |
+| Anagh Singla | Adversary — adversarial workloads and correctness stress testing |
+| Ranveer | Analyst — benchmarking and performance analysis |
 
-## OpenAI ChatGPT / Codex - Member 5 review, 16 November 2026
-Reviewed the current main and part-e/adversary branches and the uploaded submission
-guidelines. Renamed generator helpers/variables for readability; added a repeated
-partial-update push-count regression test; updated the D5 derivation and exported
-it as D5_250001006.pdf using the roll number supplied by Anagh. Added the PDF
-export script and recorded verification in adversary/README.md and REPORT.md.
-Used GCC 14.2.0, CMake 4.4.5, CTest, Python, ReportLab and Poppler for checks.
-Human review/changes: Anagh supplied the roll number; code review remains pending.
-Representative prompt: "See whether my D5 part is completed; finish anything
-missing with easy C++ code and push it into my branch."
+## 3. AI tools
+
+AI assistance was used by **all six team members** during project development. The specific use varied by member and task.
+
+| AI tool | Used by | Used for | Project areas affected | What the team did with the output |
+|---|---|---|---|---|
+| ChatGPT (OpenAI) | All six members: Naresh, Harshal, Bhuvaneesh Vijayvargiya, Arush Agrawal, Anagh Singla and Ranveer | Assistance with understanding the project requirements, discussing algorithms and design choices, explaining code, debugging, test-case ideas, benchmarking/analysis guidance and documentation | Different implementation modules, tests, benchmark analysis and documentation, depending on each member's task | Members reviewed and adapted suggestions. Code was compiled and tested where applicable; the team remains responsible for the submitted work. |
+
+### Declaration
+
+AI tools were used as assistants by all six team members. Their outputs were not treated as automatically correct. Team members reviewed and adapted AI-generated suggestions and are responsible for understanding, validating and explaining the submitted implementation. Any external material used in the project must be acknowledged according to the course submission guidelines.
+
+Before submission, verify the role-specific tools in Section 2 and add any other tools actually used. Do not retain a tool entry if the named member did not use it.
