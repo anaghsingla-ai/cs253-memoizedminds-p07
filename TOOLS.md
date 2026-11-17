@@ -44,3 +44,20 @@ conflict-resolution edit, adding terminal menu and benchmark integration, updati
 checks and reconciling report statistics against the committed CSV. GitHub Actions was used
 to compile and run the CTest suite after changes. The repository owner/team must review the
 resulting code and retain responsibility for the submitted implementation and derivations.
+
+## ChatGPT / Codex - Adversary readability refactor, 17 November 2026
+
+Requested by Anagh Singla (250001006): simplify D5 C++ with ordinary if/else,
+named variables and clearer loops while preserving the team interface.
+Generated edits affect adversary/module.cpp, adversary/main.cpp,
+adversary/export.hpp and tests/adversary_test.cpp. Added
+adversary/check_refactor.sh and extended .github/workflows/adversary.yml to compare
+the rewritten CLI's output with commit 76e81c07d9fb41ae3719f1b4ac407ae3c84293aa.
+Updated adversary/README.md, including removal of the stale deleted-export-script
+command. Fixed the test harness's unconditional failure-file success message.
+Shared headers, the D5 proof and all other owners' algorithms are preserved.
+
+Validation is performed by GitHub Actions: a Release build, the CTest suite,
+264 old/new workload comparisons and six invalid-input CLI checks. Any successful
+run is evidenced by its Actions job; no local execution is claimed for this edit.
+Human code review is still required and is not claimed here.
