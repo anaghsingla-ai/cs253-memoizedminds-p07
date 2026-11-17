@@ -10,7 +10,7 @@ struct ReplayResult {
     Counters counters;
     double elapsed_seconds = 0;
 };
-// Architect: parsing and replay; no implementation supplied in scaffold.
+
 Workload read_workload(std::istream& input);
 void write_workload(std::ostream& output, const Workload& workload);
 ReplayResult replay(RangeStructure& structure, const Workload& workload);
@@ -25,11 +25,11 @@ struct DifferentialResult {
     std::optional<Workload> failing_case;
     std::string message;
 };
-// Oracle owner: independent arithmetic, checks after updates AND queries.
+
 DifferentialResult differential_test(const Factory& a, const Factory& b,
                                      const DifferentialConfig& config);
-// Preserve the failure while removing operations and simplifying values/ranges.
-// Document whether the result is deletion-minimal or globally minimal.
+
+
 Workload shrink_failure(const Workload& failure,
                        const std::function<bool(const Workload&)>& still_fails);
 struct InvariantAccess {
@@ -50,7 +50,7 @@ Workload generate(AdversarialTarget target, const GeneratorConfig& config);
 struct BenchmarkConfig {
     Seed seed = 253;
     std::size_t repetitions = 5;
-    std::vector<std::size_t> widths; // Must include 1 and n.
+    std::vector<std::size_t> widths;
 };
 struct Measurement {
     std::string structure, workload;
@@ -59,9 +59,9 @@ struct Measurement {
     double elapsed_seconds = 0;
     Counters counters;
 };
-// Analyst: build/reset before timing; return each run, not only averages.
+
 std::vector<Measurement> benchmark(const Factory& a, const Factory& b,
                                  const Workload& workload,
                                  const BenchmarkConfig& config);
 void write_csv(std::ostream& output, const std::vector<Measurement>& rows);
-} // namespace cs253
+}

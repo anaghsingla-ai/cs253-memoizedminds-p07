@@ -1,21 +1,40 @@
 #pragma once
+// Standalone replay exporter. Tool assistance is declared in TOOLS.md.
 #include "cs253/types.hpp"
 #include <ostream>
-namespace cs253::adversary {
-// Module-local exporter until the Architect provides write_workload().
-// Deliberately does not define or replace that shared function.
-inline void export_workload(std::ostream& out, const Workload& w) {
-    out << "CS253_V1\n" << (w.mode == Mode::exact_extrema ? "EXACT" : "MODULAR")
-        << '\n' << w.seed << '\n' << w.initial.size() << ' ' << w.operations.size() << '\n';
-    for (auto x : w.initial) out << x << ' ';
-    out << '\n';
-    for (const auto& op : w.operations) {
-        if (const auto* u = std::get_if<Update>(&op))
-            out << "U " << u->range.begin << ' ' << u->range.end << ' ' << u->tag.a << ' ' << u->tag.b << '\n';
-        else {
-            const auto r = std::get<Query>(op).range;
-            out << "Q " << r.begin << ' ' << r.end << '\n';
+
+namespace cs253 {
+namespace adversary {
+
+// Keep the shared CS253_V1 format without requiring the application library.
+inline void export_workload(std::ostream& output, const Workload& workload) {
+    output << "CS253_V1\n";
+    if (workload.mode == Mode::exact_extrema) {
+        output << "EXACT\n";
+    } else {
+        output << "MODULAR\n";
+    }
+
+    output << workload.seed << '\n';
+    output << workload.initial.size() << ' ' << workload.operations.size() << '\n';
+
+    for (std::size_t i = 0; i < workload.initial.size(); i++) {
+        output << workload.initial[i] << ' ';
+    }
+    output << '\n';
+
+    for (std::size_t i = 0; i < workload.operations.size(); i++) {
+        const Operation& operation = workload.operations[i];
+        if (std::holds_alternative<Update>(operation)) {
+            const Update& update = std::get<Update>(operation);
+            output << "U " << update.range.begin << ' ' << update.range.end;
+            output << ' ' << update.tag.a << ' ' << update.tag.b << '\n';
+        } else {
+            const Query& query = std::get<Query>(operation);
+            output << "Q " << query.range.begin << ' ' << query.range.end << '\n';
         }
     }
 }
-} // namespace cs253::adversary
+
+} // namespace adversary
+} // namespace cs253
