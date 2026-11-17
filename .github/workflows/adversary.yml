@@ -7,9 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build --parallel 2
       - name: Test including million-element generation
         run: ctest --test-dir build --output-on-failure
+      - name: Check workload compatibility and CLI errors
+        run: bash adversary/check_refactor.sh "$GITHUB_WORKSPACE/build"
