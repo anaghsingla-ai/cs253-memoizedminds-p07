@@ -7,42 +7,44 @@
 #include <stdexcept>
 #include <string>
 
+using namespace std;
+
 namespace {
 
-std::uint64_t number(const char* argument) {
-    std::string text = argument;
+uint64_t number(const char* argument) {
+    string text = argument;
     if (text.empty()) {
-        throw std::invalid_argument("expected an unsigned decimal integer");
+        throw invalid_argument("expected an unsigned decimal integer");
     }
-    for (std::size_t i = 0; i < text.size(); i++) {
+    for (size_t i = 0; i < text.size(); i++) {
         if (text[i] < '0' || text[i] > '9') {
-            throw std::invalid_argument("expected an unsigned decimal integer");
+            throw invalid_argument("expected an unsigned decimal integer");
         }
     }
 
-    std::size_t characters_read = 0;
-    unsigned long long value = std::stoull(text, &characters_read);
+    size_t characters_read = 0;
+    unsigned long long value = stoull(text, &characters_read);
     if (characters_read != text.size()) {
-        throw std::invalid_argument("invalid number");
+        throw invalid_argument("invalid number");
     }
-    if (value > std::numeric_limits<std::uint64_t>::max()) {
-        throw std::out_of_range("number too large");
+    if (value > numeric_limits<uint64_t>::max()) {
+        throw out_of_range("number too large");
     }
-    return static_cast<std::uint64_t>(value);
+    return static_cast<uint64_t>(value);
 }
 
-std::size_t size_arg(const char* argument) {
-    std::uint64_t value = number(argument);
-    if (value > std::numeric_limits<std::size_t>::max()) {
-        throw std::out_of_range("size too large");
+size_t size_arg(const char* argument) {
+    uint64_t value = number(argument);
+    if (value > numeric_limits<size_t>::max()) {
+        throw out_of_range("size too large");
     }
-    return static_cast<std::size_t>(value);
+    return static_cast<size_t>(value);
 }
 
 void help() {
-    std::cout << "adversary_generate TARGET N Q SEED WIDTH EXACT|MODULAR [OUTPUT]\n";
-    std::cout << "Targets: push_downs alternating_negative_gain block_friendly range_width_sweep\n";
-    std::cout << "Writes CS253_V1 to OUTPUT or stdout. WIDTH must be in [1,N] for N>0.\n";
+    cout << "adversary_generate TARGET N Q SEED WIDTH EXACT|MODULAR [OUTPUT]\n";
+    cout << "Targets: push_downs alternating_negative_gain block_friendly range_width_sweep\n";
+    cout << "Writes CS253_V1 to OUTPUT or stdout. WIDTH must be in [1,N] for N>0.\n";
 }
 
 } // namespace
@@ -52,7 +54,7 @@ int main(int argc, char** argv) {
 
     try {
         if (argc == 2) {
-            if (std::string(argv[1]) == "--help") {
+            if (string(argv[1]) == "--help") {
                 help();
                 return 0;
             }
@@ -62,7 +64,7 @@ int main(int argc, char** argv) {
             return 2;
         }
 
-        std::string target_name = argv[1];
+        string target_name = argv[1];
         AdversarialTarget target;
         if (target_name == "push_downs") {
             target = AdversarialTarget::push_downs;
@@ -73,7 +75,7 @@ int main(int argc, char** argv) {
         } else if (target_name == "range_width_sweep") {
             target = AdversarialTarget::range_width_sweep;
         } else {
-            throw std::invalid_argument("unknown target");
+            throw invalid_argument("unknown target");
         }
 
         GeneratorConfig config;
@@ -82,35 +84,35 @@ int main(int argc, char** argv) {
         config.seed = number(argv[4]);
         config.range_width = size_arg(argv[5]);
 
-        std::string mode_name = argv[6];
+        string mode_name = argv[6];
         if (mode_name == "EXACT") {
             config.mode = Mode::exact_extrema;
         } else if (mode_name == "MODULAR") {
             config.mode = Mode::modular_sum;
         } else {
-            throw std::invalid_argument("mode must be EXACT or MODULAR");
+            throw invalid_argument("mode must be EXACT or MODULAR");
         }
 
         Workload workload = generate(target, config);
         if (argc == 8) {
-            std::ofstream output(argv[7]);
+            ofstream output(argv[7]);
             if (!output) {
-                throw std::runtime_error("cannot open output file");
+                throw runtime_error("cannot open output file");
             }
             adversary::export_workload(output, workload);
             output.close();
             if (!output) {
-                throw std::runtime_error("output write failed");
+                throw runtime_error("output write failed");
             }
         } else {
-            adversary::export_workload(std::cout, workload);
-            if (!std::cout) {
-                throw std::runtime_error("output write failed");
+            adversary::export_workload(cout, workload);
+            if (!cout) {
+                throw runtime_error("output write failed");
             }
         }
         return 0;
-    } catch (const std::exception& error) {
-        std::cerr << "adversary_generate: " << error.what() << '\n';
+    } catch (const exception& error) {
+        cerr << "adversary_generate: " << error.what() << '\n';
         return 2;
     }
 }
