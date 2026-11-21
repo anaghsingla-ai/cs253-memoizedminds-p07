@@ -103,3 +103,24 @@ that a replay file was saved.
 
 AI assistance remains declared in TOOLS.md. The simpler syntax is intended to
 help the owner read, explain and maintain the code.
+
+## Final submission verification - 21 November 2026
+
+The final artifact path is docs/derivations/D5_250001006.pdf (uppercase D).
+Its source is D5.md; scripts/export_docs.py regenerates it.
+
+The original --scale test checks generation. To execute all four families on
+both structures at n=q=1000000, run after building:
+
+    bash scripts/verify_adversary_scale.sh "$PWD/build"
+
+adversary_replay_check compares every query, checks final invariants and writes
+CSV counter evidence. It independently checks uniform-reset answers and the
+exact maximum M(n)=1+ceil(log2(ceil(n/2)))+ceil(log2(floor(n/2))) for n>=2.
+M(0)=M(1)=0. At n=1000000, M(n)=39 and 500000 primed probes yield 19500000 pushes.
+The block-friendly replay must have q full blocks and zero partial elements.
+
+The committed evidence in results/validation comes from CI, not the timing
+machine. It does not replace the Analyst's five-repeat measurements.
+Generation outputs are unchanged; 264 old/new outputs still match byte for byte.
+
