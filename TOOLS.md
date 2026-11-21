@@ -58,3 +58,13 @@ their own dated representative prompts and confirm their own tool versions.
 No tool wrote, signed or impersonated another member's individual derivation
 during this audit. Shared report/slides summarize existing repository work.
 
+## 5. Structure A follow-up - 21 November 2026
+
+Naresh used Codex to apply the review feedback on pre-build calls, mode
+validation, and the D1 submission. Codex added regression coverage, updated the
+previously authored Markdown proof, and renamed the submitted PDF.
+
+- Representative prompt — "Fix `update()` and `query()` before `build()` so they
+  throw `logic_error`, including empty ranges. Validate the mode. Complete
+  `D1.md` and rename the PDF to `D1_250001052.pdf`."
+
