@@ -1,4 +1,3 @@
-// D5 replay and counter verification. AI assistance is declared in TOOLS.md.
 #include "cs253/pipeline.hpp"
 #include "cs253/lazy_segment_tree.hpp"
 #include "cs253/sqrt_decomposition.hpp"
@@ -36,7 +35,6 @@ std::size_t height(std::size_t n) {
     return answer;
 }
 
-// Exact maximum for A's recursive midpoint tree, including uneven sizes.
 std::size_t maximum_pushes(std::size_t n) {
     if (n < 2) return 0;
     std::size_t left = n / 2 + n % 2;
@@ -99,7 +97,6 @@ void run(AdversarialTarget target, const std::string& target_name,
         }
     }
 
-    // Full invariant audits run after replay, outside operation counter checks.
     Counters ca = a.counters();
     Counters cb = b.counters();
     require(a.check_invariants().ok, "A final invariant failure");

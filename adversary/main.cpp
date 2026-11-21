@@ -1,4 +1,3 @@
-// Generator command line. Tool assistance is declared in TOOLS.md.
 #include "cs253/pipeline.hpp"
 #include "export.hpp"
 #include <fstream>
@@ -47,7 +46,7 @@ void help() {
     cout << "Writes CS253_V1 to OUTPUT or stdout. WIDTH must be in [1,N] for N>0.\n";
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
     using namespace cs253;
