@@ -47,7 +47,7 @@ target_compile_definitions(calibration PRIVATE
 
 # Tests.
 add_executable(contract_smoke tests/contract_smoke.cpp)
-target_link_libraries(contract_smoke PRIVATE range_structures)
+target_link_libraries(contract_smoke PRIVATE range_structures oracle_core)
 
 add_executable(structB_test tests/structB_test.cpp src/structB/module.cpp)
 target_link_libraries(structB_test PRIVATE cs253_contracts)
