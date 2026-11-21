@@ -102,5 +102,5 @@ CSV schema is in results/README.md. No timing/throughput values may be fabricate
 - Replay validates the workload before changing the selected structure, builds it, resets counters, times only the operation loop and captures query answers and counters.
 - `app/main.cpp` implements `--help`, `--status`, `--run PATH --structure A|B|both` and a deliberately incomplete `--all` gate.
 - `tests/app_test.cpp` covers parser, serializer, replay and edge cases; `tests/check_cli.cmake` covers the command-line behavior.
-- `docs/derivations/D3_250001017.md` and `docs/derivations/D3_250001017.PDF` contain the named Architect proof. Team approval remains to be supplied.
+- `docs/derivations/D3_250001017.md` and `docs/derivations/D3_250001017.pdf` contain the named Architect proof. Team approval remains to be supplied.
 - The Oracle implementation, differential harness, Adversary generator and benchmark implementation are integrated. The recorded wide-range benchmark campaign is stored separately in `results/raw/width_sweep.csv`.
