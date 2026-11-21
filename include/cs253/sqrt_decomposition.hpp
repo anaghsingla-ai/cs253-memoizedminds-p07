@@ -3,7 +3,7 @@
 #include <memory>
 namespace cs253 {
 struct InvariantAccess;
-// Declaration only. Owning member supplies Impl and all method definitions.
+
 class SqrtDecomposition final : public RangeStructure {
 public:
     SqrtDecomposition();
@@ -11,8 +11,8 @@ public:
     SqrtDecomposition(const SqrtDecomposition&) = delete;
     SqrtDecomposition& operator=(const SqrtDecomposition&) = delete;
     void build(const std::vector<Value>& initial, Mode mode) override;
-    std::size_t size() const noexcept override;
-    Mode mode() const noexcept override;
+    std::size_t size() const override;
+    Mode mode() const override;
     void update(Range range, AffineTag tag) override;
     Aggregate query(Range range) override;
     Counters counters() const noexcept override;
@@ -23,4 +23,4 @@ private:
     std::unique_ptr<Impl> impl_;
     friend struct InvariantAccess;
 };
-} // namespace cs253
+}

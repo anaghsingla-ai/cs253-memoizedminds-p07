@@ -1,64 +1,309 @@
-# Design and experimental report
+# Project 7 - Lazy Propagation and What Composes
+Team MemoizedMinds | CS 253 / MA 253 | Technical report, 21 November 2026
 
-Status: template; no results collected.
+## 1. Team and contributions
+| Member / roll | Role | Module / derivation |
+|---|---|---|
+| Naresh / 250001052 | Structure A | src/structA/ - D1 |
+| Harshal / 250001032 | Structure B | src/structB/ - D2 |
+| Bhuvaneesh / 250001017 | Architect | app/, include/, INTERFACE.md - D3 |
+| Arush / 250001008 | Oracle | oracle/ - D4 |
+| Anagh / 250001006 | Adversary | adversary/ - D5 |
+| Ranveer / 250041031 | Analyst | bench/, results/ - D6 |
 
-## Design decisions
-TODO owners: confirm modes, arithmetic bounds, half-open ranges, representation, block size.
-See INTERFACE.md for proposed conventions.
+Structure A supplies the recursive segment tree and its invariant checker.
+Structure B supplies block tags, full/partial block handling and a configurable
+block size. The Architect supplies the common contract, strict CS253_V1 parser,
+replay engine and terminal application. The Oracle owner supplies independent
+array arithmetic, seeded differential testing, shrinking and invariant access.
+The Adversary supplies all required workload families and their verification.
+The Analyst supplies timing, operation counters, raw CSV and the cost model.
 
-## Predictions — complete and commit before measurement
-TODO Analyst: derive A/B cost models, constants, width/alignment effects and expected crossover.
-Record prediction commit SHA and date here before running experiments.
+Contribution links in this repository: Harshal PRs #2 and #8; Bhuvaneesh #5 and #9;
+Arush #12 and #18; Anagh #3 and #17, with additional D5 verification in #21.
+Structure A and benchmark contributions are recorded in their module/data
+commit history. These links identify contributions, not evidence of peer approval.
 
-## Machine and method
-TODO: processor, cache sizes, RAM, OS, compiler version, flags, block size, timing boundaries,
-repetitions >=5, seed list, generator version and workload files.
+Each member submits their derivation separately under docs/derivations/.
+Section 12 records remaining implementation, measurement and submission limitations.
 
-## Correctness evidence
-TODO: differential seeds and one-million-operation logs, shrink examples, invariant checks,
-edge cases in both modes, full scale execution.
+## 2. Problem and application
+The calibration table contains n sensor readings. A correction of range [l,r)
+changes each reading by x -> a*x+b. Gain -1 flips an inverted sensor, gain zero
+resets it to a constant, and gain one shifts it. Queries return the range length,
+a sum checksum modulo 998244353 and, in exact mode, the minimum and maximum.
 
-## Measurements and figures
-TODO: raw CSV paths; means and spread, units, range widths 1..n, push-downs vs block touches,
-profiling evidence for cache claims. No measured values exist yet.
+The required scale is at least one million readings and one million operations.
+Scanning every affected value for every wide correction would take O(n*q) work.
+The project therefore compares two independently implemented ways to defer
+updates: a recursive segment tree and square-root decomposition. A plain array
+is retained as a correctness oracle on smaller inputs.
 
-## Adversarial results and gaps
-TODO: all three required targets, crossover or reason none exists, predicted vs measured gaps.
+The application accepts CS253_V1 workloads, replays a selected implementation,
+and reports query answers, elapsed time, throughput and operation counters.
+The interactive menu can load, generate and save a workload, compare A/B/oracle,
+run differential tests and write five-repeat benchmark CSVs. The deterministic
+scripts/run_ops.py adapter provides one answer row per query for automated checks.
 
-## Limitations and reproducibility
-TODO: arithmetic domain, peak memory, exact final release tag and fresh-clone command output.
+The delivered runtime supports affine calibration. The separate modulo-only
+operation is the subject of D3's impossibility and amortisation derivation;
+there is no range-modulo command in this calibration simulator.
+Two arithmetic modes separate exact extrema from general modular coefficients.
+This is a documented team interface choice; the Architect must reconcile any
+separately announced examiner protocol before release.
 
-## Member 5: adversarial inputs and verification (16 November 2026)
+## 3. Interface and invariants
+Public types and operations are declared under include/cs253/. Ranges are
+zero-based half-open intervals [begin,end). An empty interval is a valid update
+no-op and query identity. Out-of-range endpoints must be rejected before mutation.
+The API is build, update, query, counters, reset_counters and check_invariants.
 
-Anagh Singla (250001006) owns `adversary/` and D5. The `generate` function emits
-all three required families plus a range-width sweep. Maximum-push probes are
-preceded by a whole-array reset; negative-gain probes observe extrema before a
-second negation could hide a missing swap; block-friendly operations cover one
-aligned block, including the last short block. See `adversary/README.md` for the
-commands and `docs/derivations/D5_250001006.pdf` for the proof.
+EXACT permits a in {-1,0,1}; values, extrema and composed offsets must fit int64.
+The sum is still modular. MODULAR permits arbitrary int64 coefficients and
+initial values, reduced modulo P=998244353, with no exact extrema.
+An empty result is length=0, sum_mod=0 and absent minimum/maximum in either mode.
 
-Deterministic counter evidence from `tests/adversary_test.cpp` (GCC 14.2.0,
-CMake 4.4.5, Release build, seed 253):
+A node in A already includes its pending tag in its own aggregates. Descendants
+may lag. Pushing applies the parent tag to both children, composes it after each
+child's older tag, then clears the parent's tag to (1,0). A partial update pulls
+the parent from the updated children. A full-cover update stops at the node.
 
-| Case | Predicted count | Verified count |
-|---|---:|---:|
-| n=16, primed partial query or update | 7 pushes | 7 pushes |
-| n=1024, primed partial query or update | 19 pushes | 19 pushes |
-| n=16384, primed partial query or update | 27 pushes | 27 pushes |
-| n=50, one aligned B block per operation | 1 full block, 0 partial elements | 1 full block, 0 partial elements |
+A block in B stores raw values, a pending affine map and logical aggregates.
+Full-block updates change the logical aggregates and pending map. Partial
+updates materialize and rebuild the block; partial queries apply its map to the
+summary of the covered raw values. The final short block uses its actual length.
 
-The `2*h-1` prediction was already recorded in D5 on the branch before this
-review. Exhaustive ranges for sizes 1 through 48 confirm the generated query
-achieves the maximum for those sizes. Repeated power-of-two checks reach
-n=16384. The counter unit is one parent tag propagated to both children.
+Checkers verify residues, extrema, tags and aggregate relationships without
+repairing state or changing counters. The documented pre-build update/query
+exception is not consistently enforced by A; this source-review finding is
+assigned to Naresh and is a release blocker, even though the tested replay paths
+always call build first. INTERFACE.md is the full contract and still needs owner sign-off.
 
-All 8 CTest checks passed. This includes 240 small differential/reproducibility
-cases against independent test-only array arithmetic, invariant audits, CLI
-checks, and generation of eight workloads with n=1000000 and q=1000000
-(four families, two modes). The scale check validates generation and ranges;
-it does not replay one million operations against the production Oracle.
+## 4. Structure A: lazy segment tree
+src/structA/module.cpp implements an array-backed recursive midpoint tree.
+Storage reserves 4*n+4 nodes. Each node holds a modular sum, exact extrema when
+enabled and one pending affine tag. Build descends to leaves and merges upward.
+The inclusive recursion [tl,tr] is an implementation detail; public ranges remain
+half-open and update/query convert the right endpoint to end-1.
 
-These are correctness/counter checks, not timing benchmarks. The Analyst must
-still measure A/B timings over at least five runs, report spread, and establish
-whether the block-friendly pattern wins on the stated machine. Team-wide
-pipeline work and final report export remain with their respective owners.
+For a full-covered segment of length L, the sum changes to a*S+b*L modulo P.
+For a=1, both extrema shift by b; for a=0 they become b; for a=-1,
+new_min=-old_max+b and new_max=-old_min+b. Old extrema must both be retained
+until these two values are computed. Wider intermediates detect unsupported
+exact overflow and avoid negating INT64_MIN in int64 arithmetic.
+
+When a partial request cuts a node, push propagates a nonidentity map to both
+children. New updates compose after older work: (a2*a1,a2*b1+b2).
+Query can therefore mutate the distribution of pending tags without changing
+logical values. A full-covered query returns immediately from that node.
+
+Build and storage are O(n). A contiguous range has at most two partial nodes
+per depth, giving O(log n) update/query traversal; full-array operations use
+one root visit. Counters distinguish visits, pushes, compositions and merges.
+One push means one parent propagation, not two child applications.
+
+The array layout avoids a library container substituting for the structure.
+Maintaining both extrema is necessary for negative gains. Rejecting unsupported
+overflow is part of the declared domain, not evidence of arbitrary-precision
+support. A currently lacks the lifecycle guards and consistent mode validation required
+by the interface; these remain unresolved API limitations.
+
+## 5. Structure B: square-root decomposition
+src/structB/module.cpp stores raw values and a vector of block records. With
+automatic configuration, b=ceil(sqrt(n)); there are ceil(n/b) blocks.
+A block record contains its pending a,b pair, modular sum and exact extrema.
+The same affine identities apply as for A, but the spatial partition is flat.
+
+A fully covered block takes O(1) work: map its sum and extrema and compose its
+pending tag. For partial updates, one fused pass materializes every raw value
+in the boundary block, applies the requested update where covered, and rebuilds
+the block aggregate. It resets the pending map to identity. Even a one-element
+update can therefore cost O(b), which matters when interpreting narrow widths.
+
+A partial query scans only the covered raw elements, combines their summary
+and applies the block's pending map to that summary. It does not materialize
+the block. Multiple covered blocks are folded into the result, respecting
+length, modular sums and the enabled extrema. Short final blocks retain their
+own length in all formulas.
+
+At most two boundary blocks are partial. A worst-case operation therefore
+costs O(n/b+b), with O(n) build and backing storage. The unweighted model is
+minimized near sqrt(n); the actual optimum depends on relative full-block and
+element costs. A public block-size setting supports experiments but must be
+reset to automatic for the block-friendly generator's alignment guarantee.
+
+The simpler contiguous loops can have favorable constants, but this report
+does not claim measured cache misses or vectorization. Those claims need
+profiler evidence. The D2 PDF and configurable-block-size edge-case checks
+remain incomplete.
+
+## 6. Beyond the lecture: affine tags and modulo
+Affine updates compose because applying f(x)=a1*x+b1 and then g(x)=a2*x+b2
+gives g(f(x))=(a2*a1)*x+(a2*b1+b2). The identity is (1,0), and reset is (0,b).
+Changing the order changes the result: adding 3 then negating gives -x-3,
+whereas negating then adding 3 gives -x+3. D2 justifies these identities,
+sum mapping and the negative-gain extrema swap in full.
+
+The ordinary lazy sum summary cannot map a modulo update using only its old
+sum, length and k. Arrays [1,5] and [3,3] both have sum 6 and length 2.
+Modulo 4 changes their sums to 2 and 6 respectively. A function of (sum,length,k)
+would receive identical inputs and need two different outputs, a contradiction.
+This statement concerns that summary; it does not rule out richer structures.
+
+For the nonnegative modulo-only variant with point assignments and range sums,
+a maximum per node permits pruning when max<k. A changed value x>=k becomes
+x mod k < x/2: if k<=x/2 the remainder is below k, and if k>x/2 the quotient is
+one and the remainder is x-k<x/2. Each value has O(log C) such changes before
+reaching zero, unless a point assignment replenishes that budget.
+Charging changed leaves and boundary traversal yields the stated
+O((n+m)*log(n)*log(C)) bound, with the conventional max(1,log(C)) for tiny C.
+
+D3 is the Architect's individual proof, in docs/derivations/D3.md and the
+owner's PDF. The affine simulator does not implement this modulo-only variant.
+The course brief lists segment-tree and sqrt-decomposition readings; members
+must state which they actually consulted rather than claim all assigned works
+as implementation sources. Individual derivations remain separately assessed.
+
+## 7. Correctness and bug log
+The production oracle is an independently implemented plain array. It does not
+share affine arithmetic with either optimized structure. The D4 differential
+harness uses one million operations on 128 elements in each mode: seed 253 for
+EXACT and 42 for MODULAR. Failure evidence includes a reproducing workload and
+a shrinker; tests check that deletion of any remaining operation removes the
+failure in the test scenario.
+
+The baseline main revision passed 12 CTest checks. Eight additional replay
+checks at n=4097,q=8192 bring CTest to 20 passing checks. Existing D5 tests
+compare against a separate wide-integer array in 240 deterministic cases,
+audit invariants and exhaust all query intervals at small n.
+The new evaluator checker compares the parser/CLI output against Python
+integer arithmetic and tests malformed input. See docs/VALIDATION.md for
+revision-specific CI evidence rather than treating historical counts as current.
+
+| Date | Module | Symptom / discovery | Status |
+|---|---|---|---|
+| 21 Nov 2026 | Shared docs | D5 PDF lowercase name broke documented path; tree audit | Correct uppercase artifact restored in commit 8c32fd6 |
+| 21 Nov 2026 | A | Empty update/query before build return instead of throwing; source audit | Unresolved |
+| 21 Nov 2026 | App menu | uint64 seed limits pass through long long casts; source audit | Unresolved |
+| 21 Nov 2026 | Validation | Million-element D5 check only generated data; test audit | Added actual A/B replay in ad65d1a |
+| 21 Nov 2026 | Shared evaluator | Human-readable output included timings/headings | Added deterministic adapter in 7d2326e |
+
+The log deliberately distinguishes fixes from unresolved findings. Passing the
+tested workloads does not mean every public API state or hidden input is proven.
+
+## 8. Adversarial inputs and measured counters
+D5's push_downs family alternates a whole-array reset (0,c) with a deep
+two-boundary query. A reset remains nonidentity even when c=0. Pushing it
+overwrites any older child map with another reset, so all possible partial-node
+pushes occur. Repeated probes require re-priming; a consumed lazy tag is not free
+evidence of another worst-case query.
+
+For a power-of-two n=2^h, a probe [1,n/2+1) attains 2*h-1 pushes. For arbitrary
+n>=2, let L=ceil(n/2), R=floor(n/2), H(s)=ceil(log2(s)); the exact maximum is
+1+H(L)+H(R). For n=1000000 this is 39. The full-scale push family has 500000
+queries and exactly 19500000 pushes in each arithmetic mode.
+
+Alternating_negative_gain exposes swapped extrema before another negation can
+hide a bug; it also combines shifts, resets, overlapping intervals and empty
+queries. Block_friendly uses one aligned automatic block per operation,
+including a short last block. Range_width_sweep includes point/full widths,
+powers of two, requested width and widths around b, at several alignments.
+Modular sweeps include extreme signed coefficients.
+
+All four families execute n=q=1000000 in both modes, seed 253, width 999.
+Every query from A and B agrees and both final audits pass. The push family
+also agrees with an independent constant-array formula. Block-friendly reports
+1000000 full-block accesses and zero partial elements in B. The eight raw rows
+are in results/validation/adversary_full_scale.csv. These are verification
+counts, not wall-clock performance measurements or proof of a B timing win.
+
+## 9. Predicted cost model and chronology
+The pre-measurement cost model writes A's cost as
+`C_A = a_visit * V_A(n, w) + a_push * P_A(n, w)`, with `O(log n)` traversal and at most two partial nodes per level (`V_A = 1`, `P_A = 0` at full width `w = n`). It writes B's cost as `C_B = b_full * F_B(w, b) + b_elem * E_B(w, b)`, with `F_B ≈ max(0, w / b - 1)` and partial scanning bounded by `O(b)`. Minimising `n / b + b` gives `b = ceil(sqrt(n))` (`b = 1,000` at `n = 1,000,000`).
+
+Before measurement, this model predicted a strong A advantage on wide and full-array ranges, with a possible B advantage on narrow ranges where per-element constants matter. To evaluate this quantitatively without altering the pre-measurement model structure, `results/scripts/plot_results.py` fits the two linear constants per structure by ordinary least squares against the full-scale operation counters (`results/figures/predicted_vs_measured.png`):
+- Structure A: `a_visit = 28.02 ns/node`, `a_push = 57.70 ns/push`
+- Structure B: `b_full = 7.89 ns/block`, `b_elem = 1.67 ns/element`
+
+## 10. Experimental setup and reproducibility
+All timings were collected on Intel(R) Xeon(R) 6985P-C (2 vCPUs, L1d 48 KiB, L1i 64 KiB, L2 2 MiB, L3 504 MiB), Linux 6.12.105+ x86_64 (Debian 12), GCC 12.2.0 (`-std=c++17 -O3 -Wall -Wextra -Wpedantic`), recorded in `results/machine.md`.
+
+The full-scale timing CSV (`results/raw/full_scale_width_sweep.csv`) contains 60 rows: 6 widths (`1, 64, 1000, 16384, 262144, 1000000`), 2 structures (`structA`, `structB`), and 5 repetitions each, at `n = q = 1,000,000`, `seed = 253`, `exact_extrema` mode, and automatic `b = 1,000`. `benchmark()` validates A/B agreement before timing, builds each structure fresh before each repetition, resets counters, and surrounds only replay with `std::chrono::steady_clock`.
+
+Reproducible input recipe: `bench/run_full_scale.cpp` deterministically generates the exact `seed = 253` workload via `std::mt19937_64` and exports the full `CS253_V1` input stream when run with `--save-input` (documented in `results/raw/workloads.md`). The earlier `n = q = 100,000` campaign (`results/raw/width_sweep.csv`) is retained as historical data.
+
+## 11. Results, figures and interpretation
+Full-scale timings (`n = q = 1,000,000`, 5 repetitions, mean and sample SD in seconds, from `results/raw/full_scale_width_sweep.csv`):
+
+| Width (w) | Struct A Mean (s) | Struct A SD (s) | Struct B Mean (s) | Struct B SD (s) |
+| --- | --- | --- | --- | --- |
+| 1 | 0.4364 | 0.0447 | 0.6297 | 0.0410 |
+| 64 | 1.0668 | 0.0483 | 0.7486 | 0.0594 |
+| 1,000 | 2.0254 | 0.0273 | 2.1285 | 0.1746 |
+| 16,384 | 2.5096 | 0.2915 | 2.8043 | 0.0689 |
+| 262,144 | 2.9543 | 0.2279 | 4.9205 | 0.0156 |
+| 1,000,000 | 0.0173 | 0.0008 | 7.7966 | 0.0305 |
+
+Operation counters across the same full-scale sweep (`1,000,000` operations):
+
+| Width (w) | A: nodes_visited | A: push_downs | B: full_blocks | B: partial_elements |
+| --- | --- | --- | --- | --- |
+| 1 | 20,952,012 | 0 | 0 | 500,500,000 |
+| 64 | 30,984,277 | 4,546,317 | 0 | 563,466,000 |
+| 1,000 | 38,886,506 | 11,703,343 | 985 | 1,498,520,000 |
+| 16,384 | 46,841,714 | 19,671,587 | 15,384,733 | 1,498,394,000 |
+| 262,144 | 54,238,701 | 27,371,872 | 261,145,083 | 1,498,398,000 |
+| 1,000,000 | 1,000,000 | 0 | 1,000,000,000 | 0 |
+
+Predicted versus measured mean runtime (seconds) using the fitted linear cost models:
+
+| Width (w) | A Measured (s) | A Predicted (s) | B Measured (s) | B Predicted (s) |
+| --- | --- | --- | --- | --- |
+| 1 | 0.4364 | 0.5872 | 0.6297 | 0.8382 |
+| 64 | 1.0668 | 1.1307 | 0.7486 | 0.9436 |
+| 1,000 | 2.0254 | 1.7651 | 2.1285 | 2.5095 |
+| 16,384 | 2.5096 | 2.4478 | 2.8043 | 2.6307 |
+| 262,144 | 2.9543 | 3.0994 | 4.9205 | 4.5700 |
+| 1,000,000 | 0.0173 | 0.0280 | 7.7966 | 7.8908 |
+
+Figures (`results/figures/full_scale_time.png`, `full_scale_counters.png`, and `predicted_vs_measured.png`) are regenerated by `results/scripts/plot_results.py`.
+
+Interpretation:
+- At `w = 1`, Structure A (`0.4364 s`) beats Structure B (`0.6297 s`) because A has `0` push-downs while B still rebuilds `b = 1,000` elements per partial update.
+- At `w = 64`, Structure A triggers `4.55M` push-downs (`1.0668 s`), allowing Structure B (`0.7486 s`) to beat A because B's per-element constant (`1.67 ns`) is much smaller than A's per-push constant (`57.70 ns`).
+- From `w = 1,000` onward, Structure B crosses two boundary blocks (`1.50B` partial elements) and accumulates up to `1.00B` full-block touches, so Structure A regains the lead (`2.0254 s` vs `2.1285 s` at `w = 1,000`) and reaches `0.0173 s` vs `7.7966 s` at `w = 1,000,000` (`450x` faster).
+- Residual gaps between predicted and measured times at narrow widths (`w = 1, 64`) reflect that a two-constant linear model does not capture working-set locality changes across widths; hardware cache-miss attribution remains unverified without profiler output.
+
+## 12. Limitations and next measurements
+The final release still requires resolution of the following implementation, measurement and submission limitations:
+- Implementation/packaging: A has a pre-build lifecycle mismatch, the menu needs `uint64` seed checks, D2 lacks its required PDF, and several individual PDFs have lowercase names (check with `scripts/submission_check.py`).
+- Arithmetic domain: Exact mode is restricted to gains `{-1, 0, 1}` and `int64` values/composed offsets; general modular gains cannot return exact ordered extrema.
+- Measurement gaps: Full-scale (`n = q = 1,000,000`, 5 repetitions) timings, reproducible input recipes, and fitted predicted-versus-measured curves are now complete, but hardware profiler output (cache-miss counters), peak memory logging, and randomized A/B trial ordering remain uncollected.
+- Release check: A final fresh-clone run from the completed annotated tag is still necessary, along with instructor access and the portal's required commit SHA.
+
+## 13. References, sources and tool use
+Primary project requirements: CS253_MA253_Lab_Projects.docx (2).pdf,
+Project 7, pp. 13-14, and common roles/scale/marking sections.
+Submission format: CS253_MA253_Submission_Guidelines (2).pdf, sections 1-9.
+
+Implementation sources for this report:
+- INTERFACE.md and include/cs253/: arithmetic, ranges, invariants and counters.
+- src/structA/module.cpp: recursive updates, pushes, pulls and tree checker.
+- src/structB/module.cpp: full/partial blocks, materialization and block checker.
+- app/module.cpp and app/main.cpp: parser, replay and workbench.
+- oracle/module.cpp and tests/differential_test.cpp: oracle, shrinking and tests.
+- adversary/module.cpp, replay_check.cpp and docs/derivations/D5.md: D5.
+- bench/module.cpp, results/raw/width_sweep.csv and results/machine.md: timings.
+
+Assigned Project 7 reading (each member must confirm actual use and cite it in
+their own derivation where applicable):
+- de Berg et al., Computational Geometry, 3rd ed., 2008, Chapter 10.
+- J. L. Bentley, Decomposable searching problems, IPL 8(5), 1979.
+- Halim, Halim and Effendy, Competitive Programming 4, Book 1, Chapter 2.
+- cp-algorithms: Segment Tree (range updates) and Sqrt Decomposition.
+- USACO Guide: Segment Tree Beats, for the amortized modulo discussion.
+
+This list identifies the assigned reading, not a claim that every work was
+consulted. TOOLS.md declares AI assistance and representative prompts. Correctness evidence comes from independent arithmetic, invariant checks,
+raw-data calculations and GitHub CI. Individual proofs require their authors' sign-off.
+

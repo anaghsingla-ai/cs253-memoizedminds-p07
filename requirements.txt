@@ -1,0 +1,8 @@
+# CS253 Lazy Propagation - build requirements
+#
+# Required system tools:
+#   - C++17 compiler (GCC/g++ or Clang; MSVC is also supported by CMake)
+#   - CMake 3.16 or newer
+#   - A compatible build tool:
+#       Windows: MinGW Make (mingw32-make) or Visual Studio build tools
+#       Linux/macOS: make or Ninj

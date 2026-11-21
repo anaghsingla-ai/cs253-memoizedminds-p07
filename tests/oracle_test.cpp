@@ -176,6 +176,16 @@ void test_unbuilt_operations(){
     ArrayOracle oracle;
 
     expect_throw<std::logic_error>(
+        [&](){(void)oracle.size();},
+        "size() before build did not throw"
+    );
+
+    expect_throw<std::logic_error>(
+        [&](){(void)oracle.mode();},
+        "mode() before build did not throw"
+    );
+
+    expect_throw<std::logic_error>(
         [&](){oracle.update({0,0},{1,1});},
         "Update before build did not throw"
     );

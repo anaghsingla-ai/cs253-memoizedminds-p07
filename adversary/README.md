@@ -14,8 +14,8 @@ ctest --test-dir build --output-on-failure
 ```
 
 Windows multi-configuration generators may place executables under `build/Release/`.
-Output is the proposed CS253_V1 replay format. The module-local exporter does
-not define the Architect's unfinished `write_workload` function. Omit the final
+Output uses the shared CS253_V1 replay format. The module-local exporter keeps
+the generator CLI independent of the application library. Omit the final
 filename to use stdout. Errors return 2. Numbers must be unsigned decimal.
 
 | Target | Pattern | Purpose |
@@ -53,7 +53,7 @@ workloads. No benchmark crossover or throughput is claimed by these generators.
 
 Owner: Anagh Singla, roll number 250001006. All three Project 7 adversarial
 families are implemented; the width sweep is an additional family. The generator
-uses ordinary loops, a switch for each target, and the existing shared structs.
+uses ordinary loops, explicit if/else branches, and the existing shared structs.
 `maximum_push_range` chooses the probe; `deepest_boundary` follows left children
 until two leaves remain. No teammate algorithm is changed.
 
@@ -63,7 +63,64 @@ checked in all four families and both modes. This is generation validation,
 not evidence that the whole team's unfinished pipeline runs at that scale.
 
 The final derivation is `docs/derivations/D5_250001006.pdf`; its Markdown source
-is `docs/derivations/D5.md`. To regenerate it, install ReportLab and run
-`python docs/derivations/export_D5.py` (not needed to build the C++ project).
-The team must still merge this branch through a pull request approved by another
-member, and include the adversarial measurements in the final team report.
+is `docs/derivations/D5.md`. The optional PDF export script was removed.
+Changes must be merged through a pull request approved by another member.
+Include the adversarial measurements in the final team report.
+
+## Readable C++ version - 17 November 2026
+
+The public generate() API, four workload families, seeded random draws, range
+convention and CS253_V1 output format are retained. Shared headers and teammate
+algorithms are not edited.
+
+Read the files in this order:
+
+1. adversary/module.cpp: add_update and add_query build instructions using named
+   fields; the block and boundary helpers choose ranges; generate selects the
+   family using if/else. add_negative_operation spells out the 16-step cycle.
+2. adversary/export.hpp: an ordinary indexed loop writes each update or query.
+3. adversary/main.cpp: read arguments, select the target and mode, generate,
+   then write to a file or stdout.
+4. tests/adversary_test.cpp: the independent reference array, validation,
+   differential cases, push maxima, block counters and edge cases.
+
+The shared Operation type still uses std::variant because it is part of the
+team interface. The exporter and tests use holds_alternative/get with explicit
+Update and Query names rather than pointer-based get_if shorthand. Safe numeric
+types and wide reference arithmetic are retained.
+
+check_refactor.sh compiles the previous committed CLI and compares 264 exported
+workloads byte for byte with the rewritten CLI (all targets/modes, three seeds,
+empty/uneven arrays and short operation counts). It also checks six invalid CLI
+cases. Run after building:
+
+    bash adversary/check_refactor.sh "$PWD/build"
+
+The Actions workflow fetches history so the pinned comparison source is available.
+New checks cover both modes for aligned-block counters and the early arithmetic
+guard. Failure export now reports a write failure instead of always claiming
+that a replay file was saved.
+
+AI assistance remains declared in TOOLS.md. The simpler syntax is intended to
+help the owner read, explain and maintain the code.
+
+## Final submission verification - 21 November 2026
+
+The final artifact path is docs/derivations/D5_250001006.pdf (uppercase D).
+Its source is D5.md; scripts/export_docs.py regenerates it.
+
+The original --scale test checks generation. To execute all four families on
+both structures at n=q=1000000, run after building:
+
+    bash scripts/verify_adversary_scale.sh "$PWD/build"
+
+adversary_replay_check compares every query, checks final invariants and writes
+CSV counter evidence. It independently checks uniform-reset answers and the
+exact maximum M(n)=1+ceil(log2(ceil(n/2)))+ceil(log2(floor(n/2))) for n>=2.
+M(0)=M(1)=0. At n=1000000, M(n)=39 and 500000 primed probes yield 19500000 pushes.
+The block-friendly replay must have q full blocks and zero partial elements.
+
+The committed evidence in results/validation comes from CI, not the timing
+machine. It does not replace the Analyst's five-repeat measurements.
+Generation outputs are unchanged; 264 old/new outputs still match byte for byte.
+

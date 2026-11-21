@@ -37,3 +37,34 @@ AI assistance was used by **all six team members** during project development. T
 AI tools were used as assistants by all six team members. Their outputs were not treated as automatically correct. Team members reviewed and adapted AI-generated suggestions and are responsible for understanding, validating and explaining the submitted implementation. Any external material used in the project must be acknowledged according to the course submission guidelines.
 
 Before submission, verify the role-specific tools in Section 2 and add any other tools actually used. Do not retain a tool entry if the named member did not use it.
+
+## 4. Submission audit - 21 November 2026
+
+| Tool / version | Used by | Purpose | Files | Verification |
+|---|---|---|---|---|
+| ChatGPT / Codex, 21 November 2026 | Anagh Singla | D5 replay checks, shared evaluator, audit, documentation and export scripts | adversary/replay_check.cpp, scripts/, tests/evaluator_test.py, README.md, REPORT.md, docs/ | GitHub CI, independent Python arithmetic, raw CSV statistics and PDF visual inspection |
+| Python 3.14.5, PyMuPDF 2.0 | Anagh Singla | Shared PDF/SVG generation and local syntax checks | REPORT.pdf, D5 PDF, slides, figures | Page counts, extracted text and rendered previews |
+| GitHub Actions Ubuntu runners | Anagh Singla | Build and execute correctness checks | CI logs and results/validation/ | 20 CTest checks and eight n=q=1000000 replays |
+
+### Representative prompts
+- 21 November 2026: "Complete the things missing for D5, check the whole group,
+  add shared missing work, but tell the individual members what they must commit."
+- 17 November 2026: "Use normal syntax with if else so I can understand my D5 code."
+- 17 November 2026: "Explain maximum push-downs, alternating negative gain,
+  block-friendly inputs and range-width sweep for my presentation."
+
+The quoted prompt excerpts describe Anagh's assistance. Other members must add
+their own dated representative prompts and confirm their own tool versions.
+No tool wrote, signed or impersonated another member's individual derivation
+during this audit. Shared report/slides summarize existing repository work.
+
+## 5. Structure A follow-up - 21 November 2026
+
+Naresh used Codex to apply the review feedback on pre-build calls, mode
+validation, and the D1 submission. Codex added regression coverage, updated the
+previously authored Markdown proof, and renamed the submitted PDF.
+
+- Representative prompt — "Fix `update()` and `query()` before `build()` so they
+  throw `logic_error`, including empty ranges. Validate the mode. Complete
+  `D1.md` and rename the PDF to `D1_250001052.pdf`."
+

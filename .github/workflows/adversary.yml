@@ -7,9 +7,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build --parallel 2
       - name: Test including million-element generation
         run: ctest --test-dir build --output-on-failure
+      - name: Check deterministic evaluator against independent Python arithmetic
+        run: python3 tests/evaluator_test.py --build-dir build
+      - name: Check workload compatibility and CLI errors
+        run: bash adversary/check_refactor.sh "$GITHUB_WORKSPACE/build"
+  full-scale-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [push_downs, alternating_negative_gain, block_friendly, range_width_sweep]
+        mode: [EXACT, MODULAR]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build replay verifier
+        run: cmake --build build --target adversary_replay_check --parallel 2
+      - name: Execute one million operations on one million elements
+        run: |
+          mkdir -p build/validation
+          build/adversary_replay_check ${{ matrix.target }} ${{ matrix.mode }} 1000000 1000000 253 999 build/validation/replay.csv
+          cat build/validation/replay.csv
+  submission-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PDF export dependency
+        run: python3 -m pip install -r requirements-docs.txt
+      - name: Run the documented fresh-clone pipeline
+        run: bash scripts/run_all.sh
+
+
+
