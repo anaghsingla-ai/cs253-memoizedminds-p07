@@ -17,3 +17,23 @@ jobs:
         run: ctest --test-dir build --output-on-failure
       - name: Check workload compatibility and CLI errors
         run: bash adversary/check_refactor.sh "$GITHUB_WORKSPACE/build"
+
+  full-scale-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [push_downs, alternating_negative_gain, block_friendly, range_width_sweep]
+        mode: [EXACT, MODULAR]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build replay verifier
+        run: cmake --build build --target adversary_replay_check --parallel 2
+      - name: Execute one million operations on one million elements
+        run: |
+          mkdir -p build/validation
+          build/adversary_replay_check ${{ matrix.target }} ${{ matrix.mode }} 1000000 1000000 253 999 build/validation/replay.csv
+          cat build/validation/replay.csv
