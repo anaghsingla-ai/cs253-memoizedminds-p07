@@ -74,10 +74,8 @@ updates materialize and rebuild the block; partial queries apply its map to the
 summary of the covered raw values. The final short block uses its actual length.
 
 Checkers verify residues, extrema, tags and aggregate relationships without
-repairing state or changing counters. The documented pre-build update/query
-exception is not consistently enforced by A; this source-review finding is
-assigned to Naresh and is a release blocker, even though the tested replay paths
-always call build first. INTERFACE.md is the full contract and still needs owner sign-off.
+repairing state or changing counters. Structure A now enforces the documented pre-build update/query exception and
+mode validation, including empty intervals (Naresh, PR #27). INTERFACE.md is the full contract and still needs owner sign-off.
 
 ## 4. Structure A: lazy segment tree
 src/structA/module.cpp implements an array-backed recursive midpoint tree.
@@ -105,8 +103,8 @@ One push means one parent propagation, not two child applications.
 The array layout avoids a library container substituting for the structure.
 Maintaining both extrema is necessary for negative gains. Rejecting unsupported
 overflow is part of the declared domain, not evidence of arbitrary-precision
-support. A currently lacks the lifecycle guards and consistent mode validation required
-by the interface; these remain unresolved API limitations.
+support. PR #27 added the required lifecycle guards and mode validation. Unbuilt empty
+operations throw; empty operations after build remain valid.
 
 ## 5. Structure B: square-root decomposition
 src/structB/module.cpp stores raw values and a vector of block records. With
@@ -134,8 +132,9 @@ reset to automatic for the block-friendly generator's alignment guarantee.
 
 The simpler contiguous loops can have favorable constants, but this report
 does not claim measured cache misses or vectorization. Those claims need
-profiler evidence. The D2 PDF and configurable-block-size edge-case checks
-remain incomplete.
+profiler evidence. The D2 PDF exists. Configurable-block-size bounds and invalid-mode rejection
+still require owner validation: the current ceiling expression can overflow
+when the public block-size setting is SIZE_MAX, producing zero blocks for n=2.
 
 ## 6. Beyond the lecture: affine tags and modulo
 Affine updates compose because applying f(x)=a1*x+b1 and then g(x)=a2*x+b2
@@ -183,7 +182,7 @@ revision-specific CI evidence rather than treating historical counts as current.
 | Date | Module | Symptom / discovery | Status |
 |---|---|---|---|
 | 21 Nov 2026 | Shared docs | D5 PDF lowercase name broke documented path; tree audit | Correct uppercase artifact restored in commit 8c32fd6 |
-| 21 Nov 2026 | A | Empty update/query before build return instead of throwing; source audit | Unresolved |
+| 21 Nov 2026 | A | Empty update/query before build return instead of throwing; source audit | Fixed by Naresh in PR #27 |
 | 21 Nov 2026 | App menu | uint64 seed limits pass through long long casts; source audit | Unresolved |
 | 21 Nov 2026 | Validation | Million-element D5 check only generated data; test audit | Added actual A/B replay in ad65d1a |
 | 21 Nov 2026 | Shared evaluator | Human-readable output included timings/headings | Added deterministic adapter in 7d2326e |
@@ -218,12 +217,21 @@ are in results/validation/adversary_full_scale.csv. These are verification
 counts, not wall-clock performance measurements or proof of a B timing win.
 
 ## 9. Predicted cost model and chronology
-The pre-measurement cost model writes A's cost as
-`C_A = a_visit * V_A(n, w) + a_push * P_A(n, w)`, with `O(log n)` traversal and at most two partial nodes per level (`V_A = 1`, `P_A = 0` at full width `w = n`). It writes B's cost as `C_B = b_full * F_B(w, b) + b_elem * E_B(w, b)`, with `F_B ≈ max(0, w / b - 1)` and partial scanning bounded by `O(b)`. Minimising `n / b + b` gives `b = ceil(sqrt(n))` (`b = 1,000` at `n = 1,000,000`).
+The qualitative model in REPORT.md at commit
+5fcb902c3ffa02335e9bcee371cad00b78d22102 (16 November) predates the
+full-scale CSV commit d33379b168558e4f406326391885ff8c7d583221 (21 November).
+It postdates the older 100000-element campaign; no earlier prediction is claimed
+for that historical data. The model writes A's cost as
+`C_A = a_visit * V_A(n, w) + a_push * P_A(n, w)`, with `O(log n)` traversal and at most two partial nodes per level (`V_A = 1`, `P_A = 0` at full width `w = n`). It writes B's cost as `C_B = b_full * F_B(w, b) + b_elem * E_B(w, b)`, with `F_B � max(0, w / b - 1)` and partial scanning bounded by `O(b)`. Minimising `n / b + b` gives `b = ceil(sqrt(n))` (`b = 1,000` at `n = 1,000,000`).
 
-Before measurement, this model predicted a strong A advantage on wide and full-array ranges, with a possible B advantage on narrow ranges where per-element constants matter. To evaluate this quantitatively without altering the pre-measurement model structure, `results/scripts/plot_results.py` fits the two linear constants per structure by ordinary least squares against the full-scale operation counters (`results/figures/predicted_vs_measured.png`):
+Before the full-scale campaign, this model predicted a strong A advantage on wide and full-array ranges, with a possible B advantage on narrow ranges where per-element constants matter. The quantitative curves are calibrated after measurement: `scripts/render_benchmark_figures.py` fits the two linear constants per structure by ordinary least squares against the full-scale operation counters (`results/figures/predicted_vs_measured.png`):
 - Structure A: `a_visit = 28.02 ns/node`, `a_push = 57.70 ns/push`
 - Structure B: `b_full = 7.89 ns/block`, `b_elem = 1.67 ns/element`
+
+These constants use the same six measured means shown in the curve. This is
+a descriptive calibration, not an independent numerical forecast or holdout
+validation. The full-width drop for A is structural; residuals alone cannot
+establish cache behavior. A new unseen-width campaign would test the fit.
 
 ## 10. Experimental setup and reproducibility
 All timings were collected on Intel(R) Xeon(R) 6985P-C (2 vCPUs, L1d 48 KiB, L1i 64 KiB, L2 2 MiB, L3 504 MiB), Linux 6.12.105+ x86_64 (Debian 12), GCC 12.2.0 (`-std=c++17 -O3 -Wall -Wextra -Wpedantic`), recorded in `results/machine.md`.
@@ -244,6 +252,9 @@ Full-scale timings (`n = q = 1,000,000`, 5 repetitions, mean and sample SD in se
 | 262,144 | 2.9543 | 0.2279 | 4.9205 | 0.0156 |
 | 1,000,000 | 0.0173 | 0.0008 | 7.7966 | 0.0305 |
 
+<!-- page -->
+
+### Full-scale operation counts
 Operation counters across the same full-scale sweep (`1,000,000` operations):
 
 | Width (w) | A: nodes_visited | A: push_downs | B: full_blocks | B: partial_elements |
@@ -255,7 +266,10 @@ Operation counters across the same full-scale sweep (`1,000,000` operations):
 | 262,144 | 54,238,701 | 27,371,872 | 261,145,083 | 1,498,398,000 |
 | 1,000,000 | 1,000,000 | 0 | 1,000,000,000 | 0 |
 
-Predicted versus measured mean runtime (seconds) using the fitted linear cost models:
+<!-- page -->
+
+### Calibrated model and interpretation
+Measured versus fitted mean runtime (seconds), using constants calibrated on these same data:
 
 | Width (w) | A Measured (s) | A Predicted (s) | B Measured (s) | B Predicted (s) |
 | --- | --- | --- | --- | --- |
@@ -266,19 +280,22 @@ Predicted versus measured mean runtime (seconds) using the fitted linear cost mo
 | 262,144 | 2.9543 | 3.0994 | 4.9205 | 4.5700 |
 | 1,000,000 | 0.0173 | 0.0280 | 7.7966 | 7.8908 |
 
-Figures (`results/figures/full_scale_time.png`, `full_scale_counters.png`, and `predicted_vs_measured.png`) are regenerated by `results/scripts/plot_results.py`.
+Figures (`results/figures/full_scale_time.png`, `full_scale_counters.png`, and `predicted_vs_measured.png`) and matching SVGs are regenerated by `scripts/render_benchmark_figures.py`;
+`python3 scripts/export_docs.py` regenerates all figures and shared PDFs.
 
 Interpretation:
 - At `w = 1`, Structure A (`0.4364 s`) beats Structure B (`0.6297 s`) because A has `0` push-downs while B still rebuilds `b = 1,000` elements per partial update.
 - At `w = 64`, Structure A triggers `4.55M` push-downs (`1.0668 s`), allowing Structure B (`0.7486 s`) to beat A because B's per-element constant (`1.67 ns`) is much smaller than A's per-push constant (`57.70 ns`).
 - From `w = 1,000` onward, Structure B crosses two boundary blocks (`1.50B` partial elements) and accumulates up to `1.00B` full-block touches, so Structure A regains the lead (`2.0254 s` vs `2.1285 s` at `w = 1,000`) and reaches `0.0173 s` vs `7.7966 s` at `w = 1,000,000` (`450x` faster).
-- Residual gaps between predicted and measured times at narrow widths (`w = 1, 64`) reflect that a two-constant linear model does not capture working-set locality changes across widths; hardware cache-miss attribution remains unverified without profiler output.
+- Residual gaps show the limits of a two-constant fit. Branching, alignment, locality and fixed overhead are possible explanations; hardware cache-miss attribution remains unverified without profiler output.
+- The sampled mean ordering changes between widths 1 and 64, and again between 64 and 1000. These are crossover brackets, not precise locations. At width 1000 the timing spread overlaps, so more nearby trials are required for a confident boundary.
 
 ## 12. Limitations and next measurements
 The final release still requires resolution of the following implementation, measurement and submission limitations:
-- Implementation/packaging: A has a pre-build lifecycle mismatch, the menu needs `uint64` seed checks, D2 lacks its required PDF, and several individual PDFs have lowercase names (check with `scripts/submission_check.py`).
+- Implementation: B needs overflow-safe configurable block sizes and mode validation; the menu needs unsigned seed parsing. A lifecycle/mode validation was fixed in PR #27.
+- Individual packaging: D1, D2, D3 and D6 PDFs currently span three pages; D4 spans four. The guideline permits one or two pages. D1 also lacks its name/roll inside the PDF. D2/D3/D4 filenames need uppercase prefixes, and D2/D6 Markdown still needs owner finalization. Use scripts/submission_check.py; owners must approve their individual proofs.
 - Arithmetic domain: Exact mode is restricted to gains `{-1, 0, 1}` and `int64` values/composed offsets; general modular gains cannot return exact ordered extrema.
-- Measurement gaps: Full-scale (`n = q = 1,000,000`, 5 repetitions) timings, reproducible input recipes, and fitted predicted-versus-measured curves are now complete, but hardware profiler output (cache-miss counters), peak memory logging, and randomized A/B trial ordering remain uncollected.
+- Measurement gaps: Full-scale (`n = q = 1,000,000`, 5 repetitions) timings, reproducible input recipes, and same-data fitted curves are recorded, but hardware profiler output (cache-miss counters), peak memory logging, and randomized A/B trial ordering remain uncollected.
 - Release check: A final fresh-clone run from the completed annotated tag is still necessary, along with instructor access and the portal's required commit SHA.
 
 ## 13. References, sources and tool use
@@ -306,4 +323,5 @@ their own derivation where applicable):
 This list identifies the assigned reading, not a claim that every work was
 consulted. TOOLS.md declares AI assistance and representative prompts. Correctness evidence comes from independent arithmetic, invariant checks,
 raw-data calculations and GitHub CI. Individual proofs require their authors' sign-off.
+
 

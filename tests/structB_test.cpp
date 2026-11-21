@@ -1,10 +1,4 @@
 
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
 #include "cs253/sqrt_decomposition.hpp"
 #include "cs253/sqrt_config.hpp"
 #include <cstdint>
@@ -30,10 +24,7 @@ int failures = 0;
 struct RefArray {
     Mode mode;
     std::vector<__int128_t> v;
-<<<<<<< HEAD
-=======
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     static std::int64_t red(__int128_t x) {
         std::int64_t r = static_cast<std::int64_t>(x % 998244353);
         return r < 0 ? r + 998244353 : r;
@@ -123,17 +114,12 @@ std::vector<Value> make_initial(
     std::vector<Value> r(n);
 
     for (auto& x : r) {
-<<<<<<< HEAD
-        if (m == Mode::exact_extrema) x = (Value)(g() % 2001) - 1000;
-        else x = (Value)g();
-=======
         if (m == Mode::exact_extrema) {
             x = (Value)(g() % 2001) - 1000;
         }
         else {
             x = (Value)g();
         }
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     }
 
     return r;
@@ -150,13 +136,6 @@ AffineTag make_tag(std::mt19937_64& g, Mode m) {
     }
 
     switch (g() % 6) {
-<<<<<<< HEAD
-        case 0: return {INT64_MIN, INT64_MIN};
-        case 1: return {INT64_MAX, INT64_MIN};
-        case 2: return {-1, (Value)g()};
-        case 3: return {998244353, 998244353LL * 3};
-        default: return {(Value)g(), (Value)g()};
-=======
         case 0:
             return {INT64_MIN, INT64_MIN};
 
@@ -171,7 +150,6 @@ AffineTag make_tag(std::mt19937_64& g, Mode m) {
 
         default:
             return {(Value)g(), (Value)g()};
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     }
 }
 
@@ -181,10 +159,7 @@ Range make_range(
     std::size_t b
 ) {
     std::size_t lo, hi;
-<<<<<<< HEAD
-=======
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     if (g() % 3 == 0 && b > 0) {
         auto pick = [&]() {
             std::size_t k = g() % (n / b + 2);
@@ -218,10 +193,6 @@ Range make_range(
     return {lo, hi};
 }
 
-<<<<<<< HEAD
-
-void differential(std::uint64_t seed, std::size_t n, Mode m, std::size_t block_override, int ops) {
-=======
 void differential(
     std::uint64_t seed,
     std::size_t n,
@@ -229,7 +200,6 @@ void differential(
     std::size_t block_override,
     int ops
 ) {
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     set_sqrt_block_size(block_override);
 
     std::mt19937_64 g(seed);
@@ -332,10 +302,6 @@ void test_contract_examples() {
     }
 
     SqrtDecomposition s;
-<<<<<<< HEAD
-    s.build({5, -2, 9, 0, 7, 3, 1}, Mode::exact_extrema);
-    s.update({1, 6}, {-1, 0});
-=======
 
     s.build(
         {5, -2, 9, 0, 7, 3, 1},
@@ -344,17 +310,12 @@ void test_contract_examples() {
 
     s.update({1, 6}, {-1, 0});
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     Aggregate q = s.query({0, 7});
 
     CHECK(*q.minimum == -9 && *q.maximum == 5);
-<<<<<<< HEAD
-    s.update({0, 7}, {0, 4});
-=======
 
     s.update({0, 7}, {0, 4});
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     q = s.query({0, 7});
 
     CHECK(*q.minimum == 4 &&
@@ -386,9 +347,6 @@ void test_errors_and_edges() {
 
     CHECK(threw);
 
-<<<<<<< HEAD
-    s.build({}, Mode::exact_extrema);
-=======
     threw = false;
 
     try {
@@ -402,7 +360,6 @@ void test_errors_and_edges() {
 
     s.build({}, Mode::exact_extrema);
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     CHECK(s.size() == 0);
 
     Aggregate e = s.query({0, 0});
@@ -472,10 +429,6 @@ void test_errors_and_edges() {
 
     CHECK(z.length == 0 && !z.minimum);
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     s.build({1, 2, 3}, Mode::modular_sum);
 
     s.update({0, 3}, {INT64_MIN, INT64_MAX});
@@ -495,13 +448,9 @@ void test_errors_and_edges() {
     CHECK(s.counters().full_blocks == 1);
 
     s.reset_counters();
-<<<<<<< HEAD
-    CHECK(s.counters().full_blocks == 0 && s.counters().tag_compositions == 0);
-=======
 
     CHECK(s.counters().full_blocks == 0 &&
           s.counters().tag_compositions == 0);
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
 
     s.build({INT64_MIN}, Mode::exact_extrema);
 
@@ -517,41 +466,26 @@ void test_errors_and_edges() {
     CHECK(threw);
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
 void test_counters() {
     set_sqrt_block_size(0);
 
     SqrtDecomposition s;
-<<<<<<< HEAD
-    s.build({1, 2, 3, 4, 5, 6}, Mode::exact_extrema);
-    s.update({0, 6}, {1, 2});
-=======
 
     s.build({1, 2, 3, 4, 5, 6}, Mode::exact_extrema);
 
     s.update({0, 6}, {1, 2});
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     CHECK(s.counters().full_blocks == 2);
     CHECK(s.counters().tag_compositions == 2);
 
     s.reset_counters();
-<<<<<<< HEAD
-    (void)s.query({1, 5});
-=======
 
     (void)s.query({1, 5});
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     CHECK(s.counters().partial_elements == 4);
     CHECK(s.counters().aggregate_merges == 1);
     CHECK(s.counters().full_blocks == 0);
     CHECK(s.counters().tag_compositions == 0);
-<<<<<<< HEAD
-=======
 }
 
 void test_invariant_check_is_read_only() {
@@ -581,25 +515,10 @@ void test_invariant_check_is_read_only() {
     CHECK(report.ok);
     CHECK(same(before, after));
     CHECK(same_counters(Counters{}, counters_after_check));
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
 }
 
 void test_overflow_leaves_block_unchanged() {
     set_sqrt_block_size(2);
-<<<<<<< HEAD
-    SqrtDecomposition s;
-    s.build({INT64_MAX, 0}, Mode::exact_extrema);
-    const Aggregate before = s.query({0, 2});
-    bool threw = false;
-    try {
-        s.update({0, 2}, {1, 1});
-    } catch (const std::overflow_error&) {
-        threw = true;
-    }
-    CHECK(threw);
-    CHECK(same(s.query({0, 2}), before));
-    CHECK(s.check_invariants().ok);
-=======
 
     SqrtDecomposition s;
 
@@ -620,33 +539,11 @@ void test_overflow_leaves_block_unchanged() {
     CHECK(same(s.query({0, 2}), before));
     CHECK(s.check_invariants().ok);
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     set_sqrt_block_size(0);
 }
 
 void test_large_values() {
     set_sqrt_block_size(0);
-<<<<<<< HEAD
-    const std::vector<Value> exact_values{INT64_MAX, INT64_MIN, 17, -29};
-    SqrtDecomposition exact;
-    exact.build(exact_values, Mode::exact_extrema);
-    RefArray exact_ref(exact_values, Mode::exact_extrema);
-    CHECK(same(exact.query({0, exact_values.size()}),
-               exact_ref.query({0, exact_values.size()})));
-    exact.update({1, 4}, {0, INT64_MAX});
-    exact_ref.update({1, 4}, {0, INT64_MAX});
-    CHECK(same(exact.query({0, exact_values.size()}),
-               exact_ref.query({0, exact_values.size()})));
-    CHECK(exact.check_invariants().ok);
-
-    const std::vector<Value> modular_values{INT64_MIN, INT64_MAX, -1, 0};
-    SqrtDecomposition modular;
-    modular.build(modular_values, Mode::modular_sum);
-    RefArray modular_ref(modular_values, Mode::modular_sum);
-    modular.update({0, 4}, {INT64_MIN, INT64_MAX});
-    modular_ref.update({0, 4}, {INT64_MIN, INT64_MAX});
-    CHECK(same(modular.query({0, 4}), modular_ref.query({0, 4})));
-=======
 
     const std::vector<Value> exact_values{
         INT64_MAX,
@@ -705,7 +602,6 @@ void test_large_values() {
         modular_ref.query({0, 4})
     ));
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     CHECK(modular.check_invariants().ok);
 }
 
@@ -728,13 +624,6 @@ int main() {
             ++runs;
         }
 
-<<<<<<< HEAD
-        for (std::size_t b : {1u, 2u, 3u, 7u, 16u, 50u, 1000u})
-            for (std::size_t n : {1u, 2u, 15u, 16u, 17u, 49u, 50u, 51u, 100u, 257u}) {
-                differential(77 * b + n, n, m, b, 400);
-                ++runs;
-            }
-=======
         for (std::size_t b : {1u, 2u, 3u, 7u, 16u, 50u, 1000u}) {
             for (std::size_t n : {
                 1u, 2u, 15u, 16u, 17u,
@@ -745,7 +634,6 @@ int main() {
             }
         }
 
->>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
         differential(424242, 5000, m, 0, 3000);
         ++runs;
     }

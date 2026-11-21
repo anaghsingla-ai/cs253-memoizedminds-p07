@@ -7,13 +7,23 @@ cmake --build build --parallel 2
 ctest --test-dir build --output-on-failure
 python3 tests/evaluator_test.py --build-dir build
 ./build/calibration --all
-bash scripts/verify_adversary_scale.sh "$PWD/build"
-# A fresh, explicitly identified timing campaign; retain the historical CSV.
-./build/adversary_generate range_width_sweep 100000 100000 253 317 EXACT build/benchmark_input.txt
-printf '1\n%s\n6\n%s\n0\n' "$root/build/benchmark_input.txt" \
-    "$root/results/raw/reproduced_width_sweep.csv" > build/benchmark_menu.txt
-./build/calibration --menu < build/benchmark_menu.txt > build/benchmark_menu.log
+bash scripts/verify_adversary_scale.sh "$root/build"
+trial="$root/build/full-scale-run"
+mkdir -p "$trial/results/raw" "$root/build/validation"
+(
+    cd "$trial"
+    "$root/build/full_scale_benchmark" --save-input
+)
+python3 scripts/verify_benchmark_csv.py \
+    "$trial/results/raw/full_scale_width_sweep.csv" \
+    --expected results/raw/full_scale_width_sweep.csv
+cp "$trial/results/raw/full_scale_width_sweep.csv" build/validation/full_scale_reproduced.csv
+python3 scripts/verify_width_inputs.py --build-dir "$root/build" \
+    --base-input "$trial/results/raw/full_scale_seed253.txt"
 python3 scripts/export_docs.py
-echo "Pipeline passed. New timings: results/raw/reproduced_width_sweep.csv"
-echo "Run python3 scripts/submission_check.py to list remaining release artifacts."
+python3 scripts/submission_check.py --report-only > build/validation/submission_status.txt
+cat build/validation/submission_status.txt
+echo "Pipeline passed. Current-machine timings: build/validation/full_scale_reproduced.csv"
+echo "The published raw CSV is unchanged. Remaining release blockers are listed above."
+
 

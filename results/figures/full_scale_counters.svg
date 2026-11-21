@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720">
+<rect width="100%" height="100%" fill="white"/>
+<text x="45.00" y="34.00" font-family="sans-serif" font-size="21" fill="#123247">Full-scale operation counts - separate units</text>
+<text x="75.00" y="82.00" font-family="sans-serif" font-size="15" fill="#203247">A: tree-node entries</text>
+<line x1="75.00" y1="265.00" x2="430.00" y2="265.00" stroke="#dce3e8" stroke-width="1"/>
+<text x="23.00" y="269.00" font-family="sans-serif" font-size="10" fill="#203247">0.0M</text>
+<line x1="75.00" y1="182.50" x2="430.00" y2="182.50" stroke="#dce3e8" stroke-width="1"/>
+<text x="23.00" y="186.50" font-family="sans-serif" font-size="10" fill="#203247">27.1M</text>
+<line x1="75.00" y1="100.00" x2="430.00" y2="100.00" stroke="#dce3e8" stroke-width="1"/>
+<text x="23.00" y="104.00" font-family="sans-serif" font-size="10" fill="#203247">54.2M</text>
+<text x="65.00" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">1</text>
+<line x1="75.00" y1="201.26" x2="75.00" y2="201.26" stroke="#087f8c" stroke-width="2"/>
+<text x="171.87" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">64</text>
+<line x1="181.87" y1="170.74" x2="181.87" y2="170.74" stroke="#087f8c" stroke-width="2"/>
+<text x="242.50" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">1000</text>
+<line x1="252.50" y1="146.70" x2="252.50" y2="146.70" stroke="#087f8c" stroke-width="2"/>
+<text x="314.35" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">16384</text>
+<line x1="324.35" y1="122.50" x2="324.35" y2="122.50" stroke="#087f8c" stroke-width="2"/>
+<text x="385.60" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">262144</text>
+<line x1="395.60" y1="100.00" x2="395.60" y2="100.00" stroke="#087f8c" stroke-width="2"/>
+<text x="420.00" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">1000000</text>
+<line x1="430.00" y1="261.96" x2="430.00" y2="261.96" stroke="#087f8c" stroke-width="2"/>
+<polyline points="75.00,201.26 181.87,170.74 252.50,146.70 324.35,122.50 395.60,100.00 430.00,261.96" fill="none" stroke="#087f8c" stroke-width="2"/>
+<circle cx="75.00" cy="201.26" r="4" fill="#087f8c"/>
+<circle cx="181.87" cy="170.74" r="4" fill="#087f8c"/>
+<circle cx="252.50" cy="146.70" r="4" fill="#087f8c"/>
+<circle cx="324.35" cy="122.50" r="4" fill="#087f8c"/>
+<circle cx="395.60" cy="100.00" r="4" fill="#087f8c"/>
+<circle cx="430.00" cy="261.96" r="4" fill="#087f8c"/>
+<text x="530.00" y="82.00" font-family="sans-serif" font-size="15" fill="#203247">A: parent push events</text>
+<line x1="530.00" y1="265.00" x2="885.00" y2="265.00" stroke="#dce3e8" stroke-width="1"/>
+<text x="478.00" y="269.00" font-family="sans-serif" font-size="10" fill="#203247">0.0M</text>
+<line x1="530.00" y1="182.50" x2="885.00" y2="182.50" stroke="#dce3e8" stroke-width="1"/>
+<text x="478.00" y="186.50" font-family="sans-serif" font-size="10" fill="#203247">13.7M</text>
+<line x1="530.00" y1="100.00" x2="885.00" y2="100.00" stroke="#dce3e8" stroke-width="1"/>
+<text x="478.00" y="104.00" font-family="sans-serif" font-size="10" fill="#203247">27.4M</text>
+<text x="520.00" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">1</text>
+<line x1="530.00" y1="265.00" x2="530.00" y2="265.00" stroke="#087f8c" stroke-width="2"/>
+<text x="626.87" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">64</text>
+<line x1="636.87" y1="237.59" x2="636.87" y2="237.59" stroke="#087f8c" stroke-width="2"/>
+<text x="697.50" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">1000</text>
+<line x1="707.50" y1="194.45" x2="707.50" y2="194.45" stroke="#087f8c" stroke-width="2"/>
+<text x="769.35" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">16384</text>
+<line x1="779.35" y1="146.42" x2="779.35" y2="146.42" stroke="#087f8c" stroke-width="2"/>
+<text x="840.60" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">262144</text>
+<line x1="850.60" y1="100.00" x2="850.60" y2="100.00" stroke="#087f8c" stroke-width="2"/>
+<text x="875.00" y="285.00" font-family="sans-serif" font-size="9" fill="#203247">1000000</text>
+<line x1="885.00" y1="265.00" x2="885.00" y2="265.00" stroke="#087f8c" stroke-width="2"/>
+<polyline points="530.00,265.00 636.87,237.59 707.50,194.45 779.35,146.42 850.60,100.00 885.00,265.00" fill="none" stroke="#087f8c" stroke-width="2"/>
+<circle cx="530.00" cy="265.00" r="4" fill="#087f8c"/>
+<circle cx="636.87" cy="237.59" r="4" fill="#087f8c"/>
+<circle cx="707.50" cy="194.45" r="4" fill="#087f8c"/>
+<circle cx="779.35" cy="146.42" r="4" fill="#087f8c"/>
+<circle cx="850.60" cy="100.00" r="4" fill="#087f8c"/>
+<circle cx="885.00" cy="265.00" r="4" fill="#087f8c"/>
+<text x="75.00" y="347.00" font-family="sans-serif" font-size="15" fill="#203247">B: complete block accesses</text>
+<line x1="75.00" y1="530.00" x2="430.00" y2="530.00" stroke="#dce3e8" stroke-width="1"/>
+<text x="23.00" y="534.00" font-family="sans-serif" font-size="10" fill="#203247">0.0M</text>
+<line x1="75.00" y1="447.50" x2="430.00" y2="447.50" stroke="#dce3e8" stroke-width="1"/>
+<text x="23.00" y="451.50" font-family="sans-serif" font-size="10" fill="#203247">500.0M</text>
+<line x1="75.00" y1="365.00" x2="430.00" y2="365.00" stroke="#dce3e8" stroke-width="1"/>
+<text x="23.00" y="369.00" font-family="sans-serif" font-size="10" fill="#203247">1000.0M</text>
+<text x="65.00" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">1</text>
+<line x1="75.00" y1="530.00" x2="75.00" y2="530.00" stroke="#d47026" stroke-width="2"/>
+<text x="171.87" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">64</text>
+<line x1="181.87" y1="530.00" x2="181.87" y2="530.00" stroke="#d47026" stroke-width="2"/>
+<text x="242.50" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">1000</text>
+<line x1="252.50" y1="530.00" x2="252.50" y2="530.00" stroke="#d47026" stroke-width="2"/>
+<text x="314.35" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">16384</text>
+<line x1="324.35" y1="527.46" x2="324.35" y2="527.46" stroke="#d47026" stroke-width="2"/>
+<text x="385.60" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">262144</text>
+<line x1="395.60" y1="486.91" x2="395.60" y2="486.91" stroke="#d47026" stroke-width="2"/>
+<text x="420.00" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">1000000</text>
+<line x1="430.00" y1="365.00" x2="430.00" y2="365.00" stroke="#d47026" stroke-width="2"/>
+<polyline points="75.00,530.00 181.87,530.00 252.50,530.00 324.35,527.46 395.60,486.91 430.00,365.00" fill="none" stroke="#d47026" stroke-width="2"/>
+<circle cx="75.00" cy="530.00" r="4" fill="#d47026"/>
+<circle cx="181.87" cy="530.00" r="4" fill="#d47026"/>
+<circle cx="252.50" cy="530.00" r="4" fill="#d47026"/>
+<circle cx="324.35" cy="527.46" r="4" fill="#d47026"/>
+<circle cx="395.60" cy="486.91" r="4" fill="#d47026"/>
+<circle cx="430.00" cy="365.00" r="4" fill="#d47026"/>
+<text x="530.00" y="347.00" font-family="sans-serif" font-size="15" fill="#203247">B: raw-element accesses</text>
+<line x1="530.00" y1="530.00" x2="885.00" y2="530.00" stroke="#dce3e8" stroke-width="1"/>
+<text x="478.00" y="534.00" font-family="sans-serif" font-size="10" fill="#203247">0.0M</text>
+<line x1="530.00" y1="447.50" x2="885.00" y2="447.50" stroke="#dce3e8" stroke-width="1"/>
+<text x="478.00" y="451.50" font-family="sans-serif" font-size="10" fill="#203247">749.3M</text>
+<line x1="530.00" y1="365.00" x2="885.00" y2="365.00" stroke="#dce3e8" stroke-width="1"/>
+<text x="478.00" y="369.00" font-family="sans-serif" font-size="10" fill="#203247">1498.5M</text>
+<text x="520.00" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">1</text>
+<line x1="530.00" y1="474.89" x2="530.00" y2="474.89" stroke="#d47026" stroke-width="2"/>
+<text x="626.87" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">64</text>
+<line x1="636.87" y1="467.96" x2="636.87" y2="467.96" stroke="#d47026" stroke-width="2"/>
+<text x="697.50" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">1000</text>
+<line x1="707.50" y1="365.00" x2="707.50" y2="365.00" stroke="#d47026" stroke-width="2"/>
+<text x="769.35" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">16384</text>
+<line x1="779.35" y1="365.01" x2="779.35" y2="365.01" stroke="#d47026" stroke-width="2"/>
+<text x="840.60" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">262144</text>
+<line x1="850.60" y1="365.01" x2="850.60" y2="365.01" stroke="#d47026" stroke-width="2"/>
+<text x="875.00" y="550.00" font-family="sans-serif" font-size="9" fill="#203247">1000000</text>
+<line x1="885.00" y1="530.00" x2="885.00" y2="530.00" stroke="#d47026" stroke-width="2"/>
+<polyline points="530.00,474.89 636.87,467.96 707.50,365.00 779.35,365.01 850.60,365.01 885.00,530.00" fill="none" stroke="#d47026" stroke-width="2"/>
+<circle cx="530.00" cy="474.89" r="4" fill="#d47026"/>
+<circle cx="636.87" cy="467.96" r="4" fill="#d47026"/>
+<circle cx="707.50" cy="365.00" r="4" fill="#d47026"/>
+<circle cx="779.35" cy="365.01" r="4" fill="#d47026"/>
+<circle cx="850.60" cy="365.01" r="4" fill="#d47026"/>
+<circle cx="885.00" cy="530.00" r="4" fill="#d47026"/>
+<text x="280.00" y="645.00" font-family="sans-serif" font-size="12" fill="#203247">Range width (elements; logarithmic axis)</text>
+<text x="45.00" y="673.00" font-family="sans-serif" font-size="11" fill="#203247">Counts per 1,000,000-operation replay. Five-run means; counter SD is zero for this deterministic input.</text>
+<text x="45.00" y="699.00" font-family="sans-serif" font-size="10" fill="#203247">results/raw/full_scale_width_sweep.csv | scripts/render_benchmark_figures.py</text>
+</svg>

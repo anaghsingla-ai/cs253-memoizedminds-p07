@@ -387,11 +387,7 @@ Aggregate LazySegmentTree::query_tree(
 void LazySegmentTree::update(
     Range range, AffineTag tag
 ) {
-    if (!built) {
-        throw std::logic_error(
-            "LazySegmentTree: build() has not been called"
-        );
-    }
+    if (!built) throw std::logic_error("LazySegmentTree: build() has not been called");
 
     if (range.begin > range.end ||
         range.end > n) {
@@ -407,12 +403,14 @@ void LazySegmentTree::update(
         );
     }
 
+
     if (range.begin == range.end) return;
 
     if (current_mode == Mode::modular_sum) {
         tag.a = norm(tag.a);
         tag.b = norm(tag.b);
     }
+
 
     update_tree(
         1,
@@ -430,11 +428,7 @@ void LazySegmentTree::update(
 
 
 Aggregate LazySegmentTree::query(Range range) {
-    if (!built) {
-        throw std::logic_error(
-            "LazySegmentTree: build() has not been called"
-        );
-    }
+    if (!built) throw std::logic_error("LazySegmentTree: build() has not been called");
 
     if (range.begin > range.end ||
         range.end > n) {
