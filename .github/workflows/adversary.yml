@@ -19,7 +19,6 @@ jobs:
         run: python3 tests/evaluator_test.py --build-dir build
       - name: Check workload compatibility and CLI errors
         run: bash adversary/check_refactor.sh "$GITHUB_WORKSPACE/build"
-
   full-scale-replay:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -39,3 +38,15 @@ jobs:
           mkdir -p build/validation
           build/adversary_replay_check ${{ matrix.target }} ${{ matrix.mode }} 1000000 1000000 253 999 build/validation/replay.csv
           cat build/validation/replay.csv
+  submission-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PDF export dependency
+        run: python3 -m pip install -r requirements-docs.txt
+      - name: Run the documented fresh-clone pipeline
+        run: bash scripts/run_all.sh
+
+
+
