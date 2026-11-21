@@ -43,4 +43,5 @@ results/raw/width_sweep.csv records 5 repetitions for each structure at 6 widths
 all n=q=100000, seed 253. The new scale checks neither replace those timing
 measurements nor provide five-run full-scale timing evidence.
 The reported timing machine is in results/machine.md; GitHub runners are not
-that machine. See SUBMISSION_AUDIT.md for the Analyst's remaining tasks.
+that machine. REPORT.md sections 9-12 describe the remaining measurement
+limitations and reproducibility requirements.
