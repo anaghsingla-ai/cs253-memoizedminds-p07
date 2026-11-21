@@ -1,4 +1,3 @@
-
 #include "cs253/array_oracle.hpp"
 
 #include <iostream>
@@ -102,6 +101,16 @@ void test_empty_and_boundary_ranges(){
     empty=oracle.query({0,0});
     require(empty.length==0,"Empty build should support empty query");
     require(empty.sum_mod==0,"Empty build should have zero sum");
+    require(!empty.minimum.has_value(),"Empty build should have no minimum");
+    require(!empty.maximum.has_value(),"Empty build should have no maximum");
+
+    oracle.update({0,0},{1,5});
+
+    empty=oracle.query({0,0});
+    require(empty.length==0,"Empty update changed query length");
+    require(empty.sum_mod==0,"Empty update changed query sum");
+    require(!empty.minimum.has_value(),"Empty update created minimum");
+    require(!empty.maximum.has_value(),"Empty update created maximum");
 }
 
 void test_invalid_ranges(){

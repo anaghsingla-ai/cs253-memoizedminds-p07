@@ -45,7 +45,11 @@ target_compile_definitions(calibration PRIVATE
 
 # Tests.
 add_executable(contract_smoke tests/contract_smoke.cpp)
+<<<<<<< HEAD
 target_link_libraries(contract_smoke PRIVATE range_structures)
+=======
+target_link_libraries(contract_smoke PRIVATE range_structures oracle_core)
+>>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
 
 add_executable(structB_test tests/structB_test.cpp src/structB/module.cpp)
 target_link_libraries(structB_test PRIVATE cs253_contracts)
@@ -104,7 +108,11 @@ add_test(NAME calibration_menu
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     foreach(target IN ITEMS range_structures app_core oracle_core bench_core cs253_adversary
+<<<<<<< HEAD
                             adversary_generate adversary_replay_check calibration contract_smoke structB_test app_test
+=======
+                            adversary_generate calibration contract_smoke structB_test app_test
+>>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
                             adversary_test oracle_test differential_harness benchmark_smoke)
         target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
     endforeach()
@@ -119,6 +127,10 @@ endif()
 add_custom_target(all_checks
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
     DEPENDS calibration contract_smoke structB_test app_test adversary_test
+<<<<<<< HEAD
             oracle_test differential_harness benchmark_smoke adversary_generate adversary_replay_check
+=======
+            oracle_test differential_harness benchmark_smoke adversary_generate
+>>>>>>> 62ed4d2 (Implement Oracle and SqrtDecomposition)
     USES_TERMINAL
 )
