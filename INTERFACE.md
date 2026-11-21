@@ -1,15 +1,14 @@
 # Shared contract — review before implementation
 
-Status: **Architect v1 review candidate (12 November 2026)**. Existing structure owners must approve before this can be called frozen. Written before structures.
-Language C++17. Public headers: include/cs253/. Ownership is listed in README.md.
+Status: **Architect v1 contract cross-check (21 November 2026)**. Cross-checked against the repository README and its documented evaluator adapter. Structure-owner approval is still pending: Naresh (Structure A / D1) and Harshal (Structure B / D2) must review and approve before this contract can be called frozen. Language C++17. Public headers: include/cs253/. Ownership is listed in README.md.
 
 ## Values, ranges and modes
 - Range is zero-based [begin,end), with 0 <= begin <= end <= size(). Invalid ranges throw std::out_of_range before mutation. Empty builds and empty ranges are supported.
 - Values and tag coefficients are signed 64-bit. Residues are canonical [0,998244353).
 - exact_extrema mode permits a only in {-1,0,1}; reject other gains with std::invalid_argument before mutation. Values/min/max remain mathematical signed integers; sum is modular. Caller/generators must ensure all exact results and composed offsets fit int64; overflow is outside the supported workload domain. Use checked or wider intermediates, including negation of INT64_MIN. Document implementation bounds before benchmarking.
 - modular_sum mode permits arbitrary int64 a,b and initial values, reduced modulo the prime BEFORE arithmetic. Minimum and maximum are always absent: modular residues do not retain exact ordering. No midstream mode switch: build starts a new dataset.
-- Empty result: length=0, sum_mod=0, minimum/maximum absent in either mode. Nonempty exact result has both extrema. build replaces all state and resets counters. `size()` and `mode()` require a successful `build()` and throw `std::logic_error` before build. They are deliberately not `noexcept`, so the contract can be enforced without terminating the process. `update()` and `query()` (including empty intervals) also throw `std::logic_error` before `build()`. This behavior is implemented and covered by contract/Oracle tests; structure-owner sign-off is still required.
-- Separate modes are a team design choice resolving the PDF's distinct sum/extrema guarantees. Confirm against any examiner-provided input format; no such format is specified in the PDF.
+- Empty result: length=0, sum_mod=0, minimum/maximum absent in either mode. Nonempty exact result has both extrema. build replaces all state and resets counters. `size()` and `mode()` require a successful `build()` and throw `std::logic_error` before build. They are deliberately not `noexcept`, so the contract can be enforced without terminating the process. `update()` and `query()` (including empty intervals) are also specified to throw `std::logic_error` before `build()`. This lifecycle requirement remains to be verified against both structure implementations; the repository README currently records the pre-build update/query guard as missing.
+- Separate modes are a team design choice resolving the PDF's distinct sum/extrema guarantees. The repository README states that the supplied course PDFs do not define an external Project 7 wire format; the documented evaluator entry point is `scripts/run_ops.py`, which adapts the repository's `CS253_V1` workload format. No separate instructor-issued evaluator protocol was found in the repository materials checked. If the instructor publishes another protocol, update the adapter before the final tag.
 
 ## Operations and composition
 build(initial,mode), update(range,tag), query(range), counters(), reset_counters(), check_invariants().
