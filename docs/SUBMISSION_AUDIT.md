@@ -26,6 +26,26 @@ The lifecycle and menu findings are source-review findings, not a claim that
 an official hidden-test suite has been run. No examiner inputs are available.
 
 ## Team/release actions
+### Concrete owner reproductions
+
+**Naresh:** construct a LazySegmentTree without calling build; query({0,0})
+and update({0,0},{1,0}) currently return. INTERFACE.md requires logic_error.
+Check the built flag before all other processing, including empty-range returns.
+
+**Harshal:** set_sqrt_block_size(SIZE_MAX), then build a two-element array.
+In B::Impl::build, (nn+bs-1)/bs wraps to zero blocks even though n=2.
+An ensuing nonempty query indexes an empty block vector. Reject unsupported
+settings or compute the ceiling by quotient/remainder with overflow-safe
+block endpoints; add your own regression test and reset the global setting.
+This is a source-derived reproduction; it was not executed in this audit.
+
+**Bhuvaneesh:** menu option 5 passes UINT64_MAX as the seed limit to ask_integer.
+The function casts that limit to long long. On the tested GCC-style conversion
+it becomes -1, so even seed 0 or 253 is rejected. Parse the unsigned type
+without passing its maximum through signed long long, and test option 5.
+
+The following release steps are shared:
+
 1. Keep the repository private; it was private during this audit. Verify the
    instructor's collaborator access in repository settings; username was not supplied.
 2. Every member must have their own commits and at least one PR reviewed by
