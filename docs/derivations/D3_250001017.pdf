@@ -1,117 +1,179 @@
 %PDF-1.4
-%“Œ‹ž ReportLab Generated PDF document (opensource)
 1 0 obj
-<<
-/F1 2 0 R /F2 3 0 R /F3 4 0 R /F4 6 0 R
->>
+<< /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<<
-/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
->>
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R] /Count 3 >>
 endobj
 3 0 obj
-<<
-/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
->>
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
 4 0 obj
-<<
-/BaseFont /Courier /Encoding /WinAnsiEncoding /Name /F3 /Subtype /Type1 /Type /Font
->>
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
 endobj
 5 0 obj
-<<
-/Contents 12 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 11 0 R /Resources <<
-/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
->> /Rotate 0 /Trans <<
-
->> 
-  /Type /Page
->>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<<
-/BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding /Name /F4 /Subtype /Type1 /Type /Font
->>
+<< /Length 4500 >>
+stream
+q 0.055 0.055 0.055 rg 0 0 595 842 re f 0.84 0.69 0.37 RG 0.8 w 28 28 539 786 re S Q
+BT /F2 18 Tf 0.84 0.69 0.37 rg 42 802 Td (D3 - Architect: Range Modulo Without Lazy Tags) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 772 Td (Author: Bhuvaneesh Vijayvargiya) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 760 Td (Roll Number: 250001017) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 748 Td (Scope: CS253 Project 7, D3 \(course brief, pp. 13-14\).) Tj ET
+BT /F2 11 Tf 0.84 0.69 0.37 rg 42 731 Td (1. Why \(sum, length, k\) is not enough for a lazy range-modulo tag) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 709 Td (Let a range contain nonnegative integers x_1, ..., x_L, and let one update replace every value) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 697 Td (by x_i' = x_i mod k, where k > 0.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 680 Td (Suppose a node stores only its old sum S = sum\(x_i\) and its length L. A conventional lazy-tag) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 668 Td (mapping based only on this information would need a function F\(S, L, k\) that returns the new) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 656 Td (range sum. Such a function must give the same answer for any two ranges with the same S, L and) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 644 Td (k.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 627 Td (Consider the two length-two ranges:) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 610 Td (- A = [1, 5], whose sum is 6;) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 598 Td (- B = [3, 3], whose sum is also 6.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 581 Td (Choose k = 4. After applying modulo element by element:) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 564 Td (- A becomes [1, 1], with sum 2;) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 552 Td (- B becomes [3, 3], with sum 6.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 535 Td (The old information \(S, L, k\) is \(6, 2, 4\) in both cases, but the new sums differ. The same) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 523 Td (counterexample also works when the stored sum is reduced modulo the project's checksum prime P =) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 511 Td (998244353, because 2 and 6 remain distinct residues.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 494 Td (Therefore no function of only the old sum, the length and k can determine the new sum for every) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 482 Td (possible range. In particular, modulo is not representable by a single ordinary lazy tag whose) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 470 Td (application updates a node's sum using only those stored fields. The obstruction is lost) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 458 Td (information: the sum does not reveal how the values are distributed relative to k.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 441 Td (This is a claim about the stated summary \(sum, length\); it does not say that range modulo is) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 429 Td (impossible with every data structure or every richer node summary.) Tj ET
+BT /F2 11 Tf 0.84 0.69 0.37 rg 42 412 Td (2. A restricted variant that is still efficient) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 390 Td (Now consider a different API that supports only:) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 373 Td (1. range_mod\(l, r, k\): replace every x_i in [l, r\) by x_i mod k, with k > 0;) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 361 Td (2. assign\(p, v\): set one position to v;) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 349 Td (3. range_sum\(l, r\): return the sum on [l, r\) \(or its residue modulo P\).) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 332 Td (Assume all values are nonnegative integers; every initial value and every assigned value lies in) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 320 Td ([0, C]; C is a fixed upper bound for the workload; and ranges use zero-based half-open indexing.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 303 Td (This restricted variant does not support arbitrary affine updates and does not use lazy affine) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 291 Td (tags.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 274 Td (Build a segment tree in which each node stores the exact maximum value in its interval and the) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 262 Td (interval sum \(stored exactly if the numeric type permits, or modulo P for checksums\).) Tj ET
+BT /F1 7 Tf 0.72 0.72 0.68 rg 42 16 Td (CS253 Project 7 | D3 | Bhuvaneesh Vijayvargiya - 250001017) Tj ET
+BT /F1 7 Tf 0.72 0.72 0.68 rg 530 16 Td (1/3) Tj ET
+endstream
 endobj
 7 0 obj
-<<
-/Contents 13 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 11 0 R /Resources <<
-/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
->> /Rotate 0 /Trans <<
-
->> 
-  /Type /Page
->>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 8 0 R >>
 endobj
 8 0 obj
-<<
-/Contents 14 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 11 0 R /Resources <<
-/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
->> /Rotate 0 /Trans <<
-
->> 
-  /Type /Page
->>
+<< /Length 4724 >>
+stream
+q 0.055 0.055 0.055 rg 0 0 595 842 re f 0.84 0.69 0.37 RG 0.8 w 28 28 539 786 re S Q
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 797 Td (For a modulo update, recurse only into intersecting nodes whose stored maximum is at least k:) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 780 Td (range_mod\(node, interval, query_range, k\):) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 768 Td (if interval is disjoint from query_range:) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 756 Td (return) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 744 Td (if node.maximum < k:) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 732 Td (return // every value here is unchanged) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 720 Td (if interval is a single position:) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 708 Td (value = value mod k) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 696 Td (node.maximum = value) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 684 Td (node.sum = value) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 672 Td (return) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 660 Td (range_mod\(left_child, ..., query_range, k\)) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 648 Td (range_mod\(right_child, ..., query_range, k\)) Tj ET
+BT /F1 7.2 Tf 0.96 0.96 0.94 rg 42 636 Td (pull node.maximum and node.sum from its children) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 619 Td (The test maximum < k is safe because every value in that node is then smaller than k, so every) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 607 Td (value is unchanged by modulo. If a node intersects only part of the query, its maximum may) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 595 Td (include positions outside the query; that can cause extra descent, but cannot cause an incorrect) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 583 Td (skip. The maximum and sum are recomputed on the path back to the root.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 566 Td (A point assignment updates its leaf and its ancestors in O\(log\(n + 1\)\) time. A range-sum query) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 554 Td (is the ordinary segment-tree query and also takes O\(log\(n + 1\)\) time.) Tj ET
+BT /F2 11 Tf 0.84 0.69 0.37 rg 42 537 Td (3. Halving lemma) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 515 Td (Lemma. If a modulo operation with positive k actually changes a nonnegative integer x, then its) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 503 Td (new value is strictly less than x / 2.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 486 Td (Proof. A change occurs only when x >= k; if x < k, then x mod k = x and no change occurs. For x) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 474 Td (>= k, split into two cases.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 457 Td (- If k <= x/2, then 0 <= x mod k < k <= x/2.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 445 Td (- If k > x/2, then x/2 < k <= x, so the quotient is exactly one and x mod k = x - k < x/2.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 428 Td (In either case, the changed value is strictly smaller than half its previous value. \\square) Tj ET
+BT /F2 11 Tf 0.84 0.69 0.37 rg 42 411 Td (4. Amortised bound on the number of changed leaves) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 389 Td (Call the time between the initialisation of one array position and its next point assignment a) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 377 Td (value lifetime. The initial array contributes n lifetimes. Each point assignment starts at most) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 365 Td (one additional lifetime, and there are at most m assignments among m total operations. Thus) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 353 Td (there are at most n + m lifetimes.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 336 Td (At the start of every lifetime, the value is at most C. By the halving lemma, after t effective) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 324 Td (modulo changes during that lifetime, its value is strictly less than C / 2^t. Since values are) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 312 Td (nonnegative integers, after at most floor\(log2 C\) + 1 effective changes the value must be zero;) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 300 Td (zero cannot be changed by another positive-modulus operation. Therefore, for C >= 1, each) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 288 Td (lifetime has O\(1 + log C\) effective modulo changes. Summing over all lifetimes gives) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 271 Td (T = O\(\(n + m\)\(1 + log C\)\)) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 254 Td (for the total number T of changed leaves across the entire operation sequence. For C >= 2, this) Tj ET
+BT /F1 7 Tf 0.72 0.72 0.68 rg 42 16 Td (CS253 Project 7 | D3 | Bhuvaneesh Vijayvargiya - 250001017) Tj ET
+BT /F1 7 Tf 0.72 0.72 0.68 rg 530 16 Td (2/3) Tj ET
+endstream
 endobj
 9 0 obj
-<<
-/PageMode /UseNone /Pages 11 0 R /Type /Catalog
->>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 10 0 R >>
 endobj
 10 0 obj
-<<
-/Author (\(anonymous\)) /CreationDate (D:20261121113532+00'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20261121113532+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
-  /Subject (\(unspecified\)) /Title (\(anonymous\)) /Trapped /False
->>
-endobj
-11 0 obj
-<<
-/Count 3 /Kids [ 5 0 R 7 0 R 8 0 R ] /Type /Pages
->>
-endobj
-12 0 obj
-<<
-/Filter [ /ASCII85Decode /FlateDecode ] /Length 2736
->>
+<< /Length 4834 >>
 stream
-GauHMD/\Gm')nJ00jbF`(65D=aXMO$2Kr@>a;)7FEW'i?/81H[\WK95.G8^g++H)B/1\!<eYV\FJ[H_doJ8;LbWNdfi8QuIr1=](n#,[2#7ip=VG$DF-\U_Ir-`najiVRQr(5i>X'/eoApZ@k*']9h841]pdn'n(_t)P4-OhE:(P<As6I/<@$0!f8'DV@_PnQZl_sN$<GcBl6Y>O4>'/'V78L@3n-SZY7Gi^2bl3@n\8K9'0Ss[$Oe-u^NK0+&s!^:<pj&<-90MM"M!p*.H2"W"LY^k-WUE9[/)a#PER:d6[0_5n14o9@tcSfUY.NqGmjT9m6ZO6,2Z&tL@G;/t(dr/TA8`[oe'ZBOb0DSfP1G;>8lYQDFHF2Ln33F@A5$I9HPPb_Vilm!.Bbu.WlWEH_YDm?d.),T:"0OrQp]5YqOQ*\O5G'PZ7^DqmASY/:.rO8i.p!_i+W#8Ri>5@nAR/Hb9\HFg_"Gm'N+r7CrNM4YX._Xb%kVsc6AgFQcoo]tHnXt.kjR-rQBe!+2>g*pB)=/Y/$W_(eW2K3iFhD*+1\Q?\HqabYT[oehV.Mje?@N`ik!^$(LR=m-FfXcdtV,!3l^@.,f81:p_lV8.)$bHL!aasY#RCb#[,kt)8R3.?Eg@E@[pm/?4ruTA6mE)+3rHL"-CKQ'4)=)@jX.I#Lf_%O+@R#b%.V2LUe%F3JPeu5t3$b@kX@cEsA9Jd^/-Hp?7%^f$Epo$7!m5K!L.9H-kmpbso8s`fTe4<NX=21jdiU31Mu1TqR\cn5@i<2(YR*#!&NVU4g34Cr04h28C?D>>JQBjLpG*2^B=9]L":V#@t-AQm`P^=`Q!e>7RC/pkgSM2#@igk>0qO*6/r7o;DJLE/mWncLH!ZEi:o)<cMp^S"+%0pm.sDCft(SAG:LBMf7MY4BDOZk2;KO;pVr>ef5XRaU(c4=)^s$%j4O[LZ\s'Vb[!k%mSVal9FLo;D'rm8h.!k/,:5SKl?Mc+G!9^GXN)##;bp?bGe7NOFQKp9>&aPV_N2LQ=@Mg-$;bE)\-1!m@[jVN@7j^B::J)2HdJ;YLZ6P;'KodgKSm-7atQ'(227(/i3+k"MolHk]%%*h43]eYGaH3?Ic(*p^>.6Fq#&2C^2$ICu%7gW-&7oiZp,,XPbZq<pC],2R1Cf<'+e)d]gV9fWO]5E=\fK37@U$P]Ld&>8THiZ,`Ht;/bR`I+Nq6UH;UnYs<5he`7%[O6`Q>D?cd)cW6HtU-C%4N1)ftfI^#!hcN=As7Bn]AIYI?Z7l3+!,-R3\BY$Sd-h9_0S\M06*jfhL^0"aS@F3`rugBHCIpL3b2NpCp=4k.KoEhlORK.W1_#<)]YI]:-+\@`J3%,u&(V,<KK?#&3Tle]GYb4]MKun_U?Y"[nd!MlN5A>erd"/4?OT"h_h2BMf]Sf:h]#eV'MAu0[;O;M!WU^4+F:,[NT)\f@gIE?PVAG;FG:f0O("'$c_780+#GOeEljRKdmGcR@>WE%nRkm=Ec,p*m3aupShs#sde4/cfo&3uj4cW4?Os.G(Mp0drC0/_k1LD"gaLS%E#p\6-^3$j_]T;4!f*I]2.j"0=ptkf"Y-enfL"do?pDTm=QF8##D>$lcdqZrLKAJS/@nn(qm0O2iD;DJ2l`6oB`uSoSr"%1@DOZTKd_4*Lo.pkl%jp`M`HO:F>O5O3kB"B<$eh2B52f";'WhQIA5K#MD<hA7?)l<C5;8S>)8@#\OMgI+L6-[$DPTmJ$"CSNJtbO';Cp*0P5OIP3Dt41/#ITKsn(HF'Yd!q?dhr''2e76#J7(nBcmM#JaQ(.W$b]jtid!&HMZuGb>2&*5=l2ge.63?:^7_6%#gX]P5BQ)Z<40bAnp:?ut"sVlj-51TMYmpS<1L[d$H]mnj*-rMA2];3aU>*htBGQ8#0k=qY7+gW=hR@oFm%6h@i$R*DX.m2"XlkBYlTIcuJ]csHM"CHOD=NdOakaB=IE7Xj&H-!4;Q,LJ+p"ut`9j\fUjH2[Wur(2+"^OY&9)7c.U'IR[r/89jnLS$+k:#h;7m)1\F5PRflff"auq['G75s?GXAts_^WkSkr]UDq!`mij7FP<YW9DZ6NRGjL2$bb#lkaV5@LYVuo`fK-&b'^tEf*jHR<R+('0l23MXIDiabY_fK@p^D6^<+)3^$J,uSE5p%eB`gDVAXI0$K!4dc>mGR_MUa6Iadm!FmW.4SEq8<7HW(DpEaUlX[X9*OApG;b>oj_W#:o>:93`nbSi_e0+Im`[;QG0.$<\o6"tG'I;Uj[e9Um5(L6^$'6ak/Vm:f.<H7g6R-X3e"[,45oSh@06bm;b)?:3o8OloLME@/@0uSf#mNhJ%=OZ%AOnSd>.sYuM_U^8F?HWf'!MWigB,#[p'$Bg0b9iJ$:H^Jk."#il7D@):V+=04e-,0PX#:r5=-JV5kVe>qmgba1-Ab;"mo$1TI4]KN5Lb'lDAaqC.76sYU[A3/nA"CF.Bs#224T(%p+-QPU,GY`#8Ka$D1tcEWO0*^5QqsHU_VtQKT94P906Qi_*[<O[GP@6U=#aQ+VM=G][duN+3$N.W:D:78]ErT^+C9gR(k1/Qu22pWUS.0$,ta\Qe5Q&CGZO&1q\p2p#4cM3pGR1b1R-@2oA3u^go1\?84QGr0IXE7,mikS:4k'%8<$0#*db7Z368NLR'W6XCU`I40i\XnmDl5C+QZ_bQ9$a>.c)q+(R]2)+"!#qQn*FYZ.plDLH4F>l>JXoESq~>endstream
-endobj
-14 0 obj
-<<
-/Filter [ /ASCIId85Decode /FlateDecode ] /Length 1682
->>
-stream
-Gau0BgN!rt&:N/3oNPjfa4gEJ>cNb!'NG\xM<[obK)/2Uh^u!_3[4EdLT@8.LA0b5M+FmU12:L%;o]/1cqg8'k5Fk>oR'7If+'en9par9_PcW;H9!!n*†f+fl57r>BXB'tdfcEfgiC6+(Z1!K.T#=SW>!<g[fUKBG80XT!NY@WG_DlW^qXA5B_LOPsmQ&.@*G>*T4BG2rc_i1[Lqo!:%WsQ=;&m2S5U$R6BT.bpGS6'c:8,im&cj@Dl*A<5VZZ/'#gGq$'+t+Z!.YprYAW.2UVH&A<I@aR9+fERV"R9,g%)aQY,'T::,5W/YI1`Z<FfZLPW>N'8")X;lB&dj7GrmYrBjn91ioCI]Rrq.JC32U8;ph-F=@R;bc6:fi9Q$*p^&sFj0f,"W3M-rWgEp^e&0WF^]pAn-T&Ig.Vd8A\G#dl_^kS[GrPYdSF4R+Yi1E)>1(!]JQJ?$c0o8^feB>%Pg.K%/QV6DB6H0p4,P?J7]eG2gN-RJ7E-+.>cELqjsMCD7$,l94Tb?Y"H+J=`Q9O!9RG?GH"#HB*^r1ZEYOWk\YZj29r4sld)$(h#XJ45cC^S2:?;HI"SK,QWf1J'$=nXe.anJS<\fFk3uR<_'hK\oH6J7\pEXrdFC&o/\qc`^D6^bq4dP-I[G*c3^p4r7!Y(;Gdb==fKD]dI(4W^1^<QX?/Qg1`]b#G*r=@^<"eA:l)%/5TF_XM(Q)W9DU!7mVOt)m'e9P(?F]qUI-IOZ)3E3oHLPG=CTi?M>9kEC+WH1KW>=H0XOO!+1<qX>\3.`b%#+k;U[ol']]JV>ToL#0\ZJ%'$[`P8bdk/=OG,6Zqg%@/,S"`Uc=_bPqSZo131@=dNI"<ODl#Wt8P)3Kt<J<;pX3L'CX>PTs!2FL>dPG:^`J/L>A$]r-Al9`k"3tG4&drQQ(Q?":VQ>Z#W\RtiQ!@FJ%g#R%gZu64Fe,^ZkGp\G7*n#daX5iLWkk6XbdSQ_<OY6#=i4AK^X^Cl!fTfO:nJMmA)VnudJ1p)kId,F/PZP+@&Pq=6U48_ZKY_D+d\_=/jH`"!o,62?jLgb2[Tr9!i_mLNF(_*brh_i68'&@^7-1.j!f1:5gr@FU.&5S:P.M&<ijDqP2&A(0Sa;C7(N_bNY68tBpZ'<=D3:m>E6nG7S1r3=g%qGJKB$j5\k[P[Dlp&<i6SLA`_DjlNf'FlEiGC)WI>,GkpM@"[0$r*1&pBI#7,8A>AEZI&?A&a3a04LGXLIBmifPa"6Xal49C(9O&0ZF*Tq=@!s%TjpghlE^=UsRpY$nH#JpZ[("6kO!\0hR?V&Q-6"SmU74hG=Q\'?%l,O:3?CA=(uu`h/],$l,I+e2rk,eSH:P/RfN+Jk2\OK%L%-.Kg?"f=_h+1*K0%[PJhR?;;p_XXmK^*Z4E($43'L7;J]!^"H5H-rT(Ds"W7VN?;^F5GX0P'A;9<#O"$5CB-'(EWFou?p"cNe]iK[Q6K!**Glg0"ZHTZ!^';d\Qh/1c9Z<GdPC$U6c(77T-6`TR]h*-QBk>9[cc]nIE0P/=:.=:HjZI;0<Wm7)AIOZB*Dj1,*fJ'YpX0JYq6P&0,=P_Y#:utI_HfS-NHm;^D354-Rs#tl,iVN-1V9"h[frfmEf!*V6`rZA$bEuq`DHn#9K]""TX%KL=4PAVR40(5'nT@`=aOG:%JdljEajK#g@qsdZ~>endstream
+q 0.055 0.055 0.055 rg 0 0 595 842 re f 0.84 0.69 0.37 RG 0.8 w 28 28 539 786 re S Q
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 802 Td (is conventionally written as T = O\(\(n + m\) log C\). If C = 0, no modulo operation changes a) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 790 Td (value; if C = 1, each lifetime has at most one effective change, so T = O\(n + m\).) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 773 Td (The point-assignment count is already bounded by m; an assignment may restore a large value, but) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 761 Td (it starts a new lifetime and is therefore charged separately rather than invalidating the) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 749 Td (halving argument for the previous lifetime.) Tj ET
+BT /F2 11 Tf 0.84 0.69 0.37 rg 42 732 Td (5. Total running time) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 710 Td (For one range-modulo operation that changes t leaves, max-pruning visits the segment-tree paths) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 698 Td (leading to those leaves, plus at most O\(log\(n + 1\)\) boundary nodes caused by the two ends of the) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 686 Td (query interval. The union of t root-to-leaf paths contains at most O\(\(t + 1\) log\(n + 1\)\) nodes.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 674 Td (Consequently, its cost is O\(\(t + 1\) log\(n + 1\)\).) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 657 Td (Across the whole workload:) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 640 Td (- all range-modulo operations cost O\(\(m + T\) log\(n + 1\)\) in total;) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 628 Td (- all point assignments cost O\(m log\(n + 1\)\);) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 616 Td (- all range-sum queries cost O\(m log\(n + 1\)\).) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 599 Td (Combining these bounds and substituting the bound on T, for C >= 2 we obtain) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 582 Td (O\(\(n + m\) log\(n + 1\) log C\).) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 565 Td (For C <= 1, the bound is O\(\(n + m\) log\(n + 1\)\). Segment-tree storage is O\(n\). For n >= 2, the) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 553 Td (conventional notation log\(n + 1\) may be written as log n; the n + 1 form also covers the) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 541 Td (constant-time n = 1 edge case.) Tj ET
+BT /F2 11 Tf 0.84 0.69 0.37 rg 42 524 Td (6. Conclusion and connection to Project 7) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 502 Td (The first result explains why a range-modulo update cannot be treated like the affine lazy) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 490 Td (updates in Structures A and B when the node summary contains only sum and length: two ranges) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 478 Td (with identical summaries can require different new sums. The second result shows that this does) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 466 Td (not make the restricted modulo problem intractable. A segment tree storing exact maxima can) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 454 Td (prune every interval whose values are all below k, and the halving lemma bounds how often a leaf) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 442 Td (can force descent between point assignments.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 425 Td (This is a separate restricted variant: range modulo, point assignment and range sum only. It is) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 413 Td (not a claim that the main calibration simulator should replace its affine lazy segment tree or) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 401 Td (square-root decomposition with this structure.) Tj ET
+BT /F2 11 Tf 0.84 0.69 0.37 rg 42 384 Td (References) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 362 Td (1. CS 253 / MA 253 Lab Projects, Project 7, "Lazy propagation and what composes," D3, pp. 13-14.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 350 Td (2. USACO Guide, "Segment Tree Beats," listed as study material in the Project 7 brief.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 338 Td (3. P7 Lazy Propagation - Team MemoizedMinds, page 9 - D3 counterexample, maximum-based pruning,) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 326 Td (halving argument, and stated complexity.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 314 Td (4. P7 Lazy Propagation - Team MemoizedMinds, pages 2-3 - project operation model, interval) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 302 Td (convention, and affine-composition context.) Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 290 Td (5. INTERFACE.md - shared project contract for ranges, modes, aggregates, and the structures') Tj ET
+BT /F1 8.2 Tf 0.96 0.96 0.94 rg 42 278 Td (responsibilities.) Tj ET
+BT /F1 7 Tf 0.72 0.72 0.68 rg 42 16 Td (CS253 Project 7 | D3 | Bhuvaneesh Vijayvargiya - 250001017) Tj ET
+BT /F1 7 Tf 0.72 0.72 0.68 rg 530 16 Td (3/3) Tj ET
+endstream
 endobj
 xref
-0 15
+0 11
 0000000000 65535 f 
-0000000061 00000 n 
-0000000122 00000 n 
-0000000229 00000 n 
-0000000341 00000 n 
-0000000446 00000 n 
-0000000651 00000 n 
-0000000766 00000 n 
-0000000971 00000 n 
-0000001176 00000 n 
-0000001245 00000 n 
-0000001526 00000 n 
-0000001598 00000 n 
-0000004426 00000 n 
-0000007315 00000 n 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000000197 00000 n 
+0000000272 00000 n 
+0000000408 00000 n 
+0000004959 00000 n 
+0000005095 00000 n 
+0000009870 00000 n 
+0000010007 00000 n 
 trailer
-<<
-/ID 
-[<21ee3a3eebb8eb07e9a47bfc04f87c33><21ee3a3eebb8eb07e9a47bfc04f87c33>]
-% ReportLab generated PDF document -- digest (opensource)
-
-/Info 10 0 R
-/Root 9 0 R
-/Size 15
->>
+<< /Size 11 /Root 1 0 R >>
 startxref
-9089
+14893
 %%EOF
