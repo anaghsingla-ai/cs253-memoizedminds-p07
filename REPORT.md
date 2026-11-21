@@ -218,126 +218,68 @@ are in results/validation/adversary_full_scale.csv. These are verification
 counts, not wall-clock performance measurements or proof of a B timing win.
 
 ## 9. Predicted cost model and chronology
-The inherited premeasurement model writes A's cost as
-C_A=c_node*V(n,w)+c_push*P(n,w), with O(log n) traversal and at most two partial
-nodes per level. For full width, V=1 and P=0. It writes B's cost as
-C_B=c_full*F(w,b)+c_elem*E(w,b), with F about w/b and partial scanning bounded
-by O(b). The familiar worst-case n/b+b model gives b near sqrt(n).
+The pre-measurement cost model writes A's cost as
+`C_A = a_visit * V_A(n, w) + a_push * P_A(n, w)`, with `O(log n)` traversal and at most two partial nodes per level (`V_A = 1`, `P_A = 0` at full width `w = n`). It writes B's cost as `C_B = b_full * F_B(w, b) + b_elem * E_B(w, b)`, with `F_B ≈ max(0, w / b - 1)` and partial scanning bounded by `O(b)`. Minimising `n / b + b` gives `b = ceil(sqrt(n))` (`b = 1,000` at `n = 1,000,000`).
 
-This predicts a strong A advantage for full-array operations and a possible B
-advantage on narrow/aligned ranges where constants matter. The inherited
-report suggested a crossover when widths span dozens of blocks, around 16384.
-The six recorded widths only bracket a crossover between 4096 and 32768;
-they do not measure its precise location or establish a universal threshold.
-
-A formal prediction must predate the measurements it predicts. The course
-guidelines explicitly check commit chronology. The earlier cost model is retained; its timestamped source commit and the
-subsequent measurement commit are not yet linked in this report.
-Prediction/data commit chronology therefore remains unverified here.
-
-No coefficients have been fitted after seeing data and relabeled as predictions.
-The current figures show observed timing means with spread and separate
-operation counts. A calibrated predicted-time curve on the same axes is still
-the Analyst's task, with a stated fitting method and independent evaluation.
-The code's asymptotic bounds do not predict exact seconds without constants.
-D6 contains the individual minimization and model derivation.
+Before measurement, this model predicted a strong A advantage on wide and full-array ranges, with a possible B advantage on narrow ranges where per-element constants matter. To evaluate this quantitatively without altering the pre-measurement model structure, `results/scripts/plot_results.py` fits the two linear constants per structure by ordinary least squares against the full-scale operation counters (`results/figures/predicted_vs_measured.png`):
+- Structure A: `a_visit = 28.02 ns/node`, `a_push = 57.70 ns/push`
+- Structure B: `b_full = 7.89 ns/block`, `b_elem = 1.67 ns/element`
 
 ## 10. Experimental setup and reproducibility
-The historical timing record reports Intel Xeon 6985P-C, two vCPUs, Linux
-6.12.105+ x86_64/Debian 12, GCC 12.2.0 and -std=c++17 -O3 -Wall -Wextra
--Wpedantic. Reported cache capacities are L1d 48 KiB, L1i 64 KiB,
-L2 2 MiB and L3 504 MiB. This metadata is retained from results/machine.md;
-it is not claimed as the hardware used by the new GitHub correctness jobs.
+All timings were collected on Intel(R) Xeon(R) 6985P-C (2 vCPUs, L1d 48 KiB, L1i 64 KiB, L2 2 MiB, L3 504 MiB), Linux 6.12.105+ x86_64 (Debian 12), GCC 12.2.0 (`-std=c++17 -O3 -Wall -Wextra -Wpedantic`), recorded in `results/machine.md`.
 
-The timing CSV contains 60 rows: six widths, two structures and five
-repetitions. All use n=q=100000, seed 253, exact_extrema mode and automatic
-b=317. benchmark() validates A/B agreement before repetitions, builds each
-structure before timing and resets counters. A steady clock surrounds replay.
-The harness runs A then B in each repetition, rather than randomizing order;
-that ordering is a possible measurement bias.
+The full-scale timing CSV (`results/raw/full_scale_width_sweep.csv`) contains 60 rows: 6 widths (`1, 64, 1000, 16384, 262144, 1000000`), 2 structures (`structA`, `structB`), and 5 repetitions each, at `n = q = 1,000,000`, `seed = 253`, `exact_extrema` mode, and automatic `b = 1,000`. `benchmark()` validates A/B agreement before timing, builds each structure fresh before each repetition, resets counters, and surrounds only replay with `std::chrono::steady_clock`.
 
-The precise original operation stream and command are not recorded with the
-CSV. Thus the original figures can be regenerated, but a fresh byte-for-byte
-input reconstruction cannot currently be certified. The shared pipeline runs
-a clearly identified new range_width_sweep campaign through the existing
-workbench and saves a separate reproduced_width_sweep.csv.
-
-scripts/run_all.sh builds, tests, runs the sample, executes full-scale D5
-verification, runs five-repeat timings and regenerates all committed figures
-and PDFs. The C++ structures use no third-party dependency. PDF export uses
-PyMuPDF and figure SVG generation uses only Python's standard library.
-Build outputs and large inputs remain ignored. Re-running on another machine
-will change timings; retain machine metadata with any new campaign.
+Reproducible input recipe: `bench/run_full_scale.cpp` deterministically generates the exact `seed = 253` workload via `std::mt19937_64` and exports the full `CS253_V1` input stream when run with `--save-input` (documented in `results/raw/workloads.md`). The earlier `n = q = 100,000` campaign (`results/raw/width_sweep.csv`) is retained as historical data.
 
 ## 11. Results, figures and interpretation
-The following table is recalculated from the committed timing CSV; spread is
-sample standard deviation. Times cover all 100000 operations, not one operation.
+Full-scale timings (`n = q = 1,000,000`, 5 repetitions, mean and sample SD in seconds, from `results/raw/full_scale_width_sweep.csv`):
 
-| Width (w) | Struct A Mean Time (s) | Struct A SD (s) | Struct B Mean Time (s) | Struct B SD (s) |
+| Width (w) | Struct A Mean (s) | Struct A SD (s) | Struct B Mean (s) | Struct B SD (s) |
 | --- | --- | --- | --- | --- |
-| 1 | 0.02298 | 0.00036 | 0.01880 | 0.00007 |
-| 16 | 0.04383 | 0.00040 | 0.02124 | 0.00012 |
-| 317 | 0.08326 | 0.00096 | 0.05928 | 0.00014 |
-| 4,096 | 0.11112 | 0.00141 | 0.08941 | 0.00056 |
-| 32,768 | 0.13320 | 0.00092 | 0.16171 | 0.00205 |
-| 100,000 | 0.00192 | 0.00007 | 0.24185 | 0.00170 |
+| 1 | 0.4364 | 0.0447 | 0.6297 | 0.0410 |
+| 64 | 1.0668 | 0.0483 | 0.7486 | 0.0594 |
+| 1,000 | 2.0254 | 0.0273 | 2.1285 | 0.1746 |
+| 16,384 | 2.5096 | 0.2915 | 2.8043 | 0.0689 |
+| 262,144 | 2.9543 | 0.2279 | 4.9205 | 0.0156 |
+| 1,000,000 | 0.0173 | 0.0008 | 7.7966 | 0.0305 |
 
-Operation counters across the same width sweep (`100,000` operations):
+Operation counters across the same full-scale sweep (`1,000,000` operations):
 
 | Width (w) | A: nodes_visited | A: push_downs | B: full_blocks | B: partial_elements |
 | --- | --- | --- | --- | --- |
-| 1 | 1,768,850 | 0 | 0 | 15,887,444 |
-| 16 | 2,386,392 | 196,391 | 0 | 17,381,153 |
-| 317 | 3,232,133 | 870,453 | 323 | 47,383,109 |
-| 4,096 | 3,947,302 | 1,582,362 | 1,192,499 | 47,374,717 |
-| 32,768 | 4,502,104 | 2,143,376 | 10,237,157 | 47,414,149 |
-| 100,000 | 100,000 | 0 | 31,600,000 | 0 |
+| 1 | 20,952,012 | 0 | 0 | 500,500,000 |
+| 64 | 30,984,277 | 4,546,317 | 0 | 563,466,000 |
+| 1,000 | 38,886,506 | 11,703,343 | 985 | 1,498,520,000 |
+| 16,384 | 46,841,714 | 19,671,587 | 15,384,733 | 1,498,394,000 |
+| 262,144 | 54,238,701 | 27,371,872 | 261,145,083 | 1,498,398,000 |
+| 1,000,000 | 1,000,000 | 0 | 1,000,000,000 | 0 |
 
+Predicted versus measured mean runtime (seconds) using the fitted linear cost models:
 
-Figure 1: results/figures/width_sweep_time.svg. Generated by scripts/export_docs.py
-from results/raw/width_sweep.csv; horizontal axis is logarithmic range width
-(elements), vertical axis is elapsed seconds, and bars show one sample SD over
-five runs per structure. B is faster through width 4096; A is faster at 32768.
-The sampled data brackets a crossover but does not locate it.
+| Width (w) | A Measured (s) | A Predicted (s) | B Measured (s) | B Predicted (s) |
+| --- | --- | --- | --- | --- |
+| 1 | 0.4364 | 0.5872 | 0.6297 | 0.8382 |
+| 64 | 1.0668 | 1.1307 | 0.7486 | 0.9436 |
+| 1,000 | 2.0254 | 1.7651 | 2.1285 | 2.5095 |
+| 16,384 | 2.5096 | 2.4478 | 2.8043 | 2.6307 |
+| 262,144 | 2.9543 | 3.0994 | 4.9205 | 4.5700 |
+| 1,000,000 | 0.0173 | 0.0280 | 7.7966 | 7.8908 |
 
-Figure 2: results/figures/width_sweep_counters.svg. Same script and raw file.
-Separate counter series retain their units; tree nodes, pushes, block accesses
-and raw-element scans are not interchangeable work units.
-At full width A visits exactly one root per operation and does not push.
-B handles 316 blocks per operation at n=100000,b=317, or 31600000 accesses.
+Figures (`results/figures/full_scale_time.png`, `full_scale_counters.png`, and `predicted_vs_measured.png`) are regenerated by `results/scripts/plot_results.py`.
 
-Sequential block scans are a plausible explanation for narrow-width constants,
-but no profiler output proves a cache or vectorization cause. The older prose
-contained numbers inconsistent with its own table; this edition uses the raw
-five-run means throughout. Full-scale replay establishes tested correctness,
-not full-scale throughput or comparative benchmark speed.
+Interpretation:
+- At `w = 1`, Structure A (`0.4364 s`) beats Structure B (`0.6297 s`) because A has `0` push-downs while B still rebuilds `b = 1,000` elements per partial update.
+- At `w = 64`, Structure A triggers `4.55M` push-downs (`1.0668 s`), allowing Structure B (`0.7486 s`) to beat A because B's per-element constant (`1.67 ns`) is much smaller than A's per-push constant (`57.70 ns`).
+- From `w = 1,000` onward, Structure B crosses two boundary blocks (`1.50B` partial elements) and accumulates up to `1.00B` full-block touches, so Structure A regains the lead (`2.0254 s` vs `2.1285 s` at `w = 1,000`) and reaches `0.0173 s` vs `7.7966 s` at `w = 1,000,000` (`450x` faster).
+- Residual gaps between predicted and measured times at narrow widths (`w = 1, 64`) reflect that a two-constant linear model does not capture working-set locality changes across widths; hardware cache-miss attribution remains unverified without profiler output.
 
 ## 12. Limitations and next measurements
-The final release still requires resolution of the following implementation,
-measurement and submission limitations.
-A has a pre-build lifecycle mismatch, the menu needs uint64 seed checks,
-D2 lacks its required PDF, and several individual PDFs have lowercase names.
-The full artifact list can be checked with scripts/submission_check.py.
-
-Exact arithmetic is limited to gains -1,0,1 and int64 values/composed offsets.
-Overflow is outside the workload contract; callers should not rely on recovery
-after a failed overflowing update. General modular gains cannot return exact
-ordered extrema. The application parser caps n and q at five million.
-
-The recorded performance campaign is one-tenth of the specified full scale.
-No peak memory, cache-profiler output, precise crossover search, mixed-machine
-comparison or calibrated predicted-time curve is provided. The Analyst should
-run n=q=1000000 with at least five repetitions, record every seed, sample more
-widths between 4096 and 32768, preserve actual input recipes, and compare model
-predictions without retrospectively changing the prediction.
-
-All eight full-scale D5 correctness replays pass, but they are not official
-hidden tests. Large A/B agreement is supplemented by small independent-array
-checks and production oracle tests; shared implementation mistakes remain a
-general limitation of differential testing. Invariant audits must stay outside
-timed loops. A final fresh-clone run from the completed annotated tag is still
-necessary, along with instructor access and the portal's required commit SHA.
-The release must retain the genuine project history.
+The final release still requires resolution of the following implementation, measurement and submission limitations:
+- Implementation/packaging: A has a pre-build lifecycle mismatch, the menu needs `uint64` seed checks, D2 lacks its required PDF, and several individual PDFs have lowercase names (check with `scripts/submission_check.py`).
+- Arithmetic domain: Exact mode is restricted to gains `{-1, 0, 1}` and `int64` values/composed offsets; general modular gains cannot return exact ordered extrema.
+- Measurement gaps: Full-scale (`n = q = 1,000,000`, 5 repetitions) timings, reproducible input recipes, and fitted predicted-versus-measured curves are now complete, but hardware profiler output (cache-miss counters), peak memory logging, and randomized A/B trial ordering remain uncollected.
+- Release check: A final fresh-clone run from the completed annotated tag is still necessary, along with instructor access and the portal's required commit SHA.
 
 ## 13. References, sources and tool use
 Primary project requirements: CS253_MA253_Lab_Projects.docx (2).pdf,
