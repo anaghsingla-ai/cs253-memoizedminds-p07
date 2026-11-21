@@ -15,6 +15,8 @@ jobs:
         run: cmake --build build --parallel 2
       - name: Test including million-element generation
         run: ctest --test-dir build --output-on-failure
+      - name: Check deterministic evaluator against independent Python arithmetic
+        run: python3 tests/evaluator_test.py --build-dir build
       - name: Check workload compatibility and CLI errors
         run: bash adversary/check_refactor.sh "$GITHUB_WORKSPACE/build"
 
