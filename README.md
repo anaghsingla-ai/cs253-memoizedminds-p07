@@ -15,9 +15,9 @@ Team MemoizedMinds - CS 253 / MA 253, November 2026
 We replay affine corrections x -> a*x+b on a sensor array and query its minimum,
 maximum and sum checksum. Structure A is a lazy segment tree; Structure B uses
 square-root blocks with affine tags. An independent plain-array oracle checks
-correctness. The recorded five-run campaign at n=q=100000 favors B through width
-4096 and A at width 32768 and full width; eight additional correctness runs
-execute n=q=1000000, covering all four D5 families in both modes.
+correctness. The full-scale five-run campaign uses n=q=1000000: A has the
+lower measured mean at width 1 and from width 1000 onward; B wins at width 64.
+Eight correctness runs cover all four D5 families in both modes at that scale.
 
 ## Requirements
 - Linux with GCC or Clang supporting C++17 **and __int128_t**; 64-bit builds recommended.
@@ -119,22 +119,30 @@ error on stderr. Use `--build-dir PATH` for a different build directory.
 ```bash
 bash scripts/run_all.sh
 ```
-This builds, tests, runs the sample app, executes full-scale D5 verification,
-runs five-repeat benchmarks through the existing workbench, regenerates figures
-from the committed raw CSV, and exports report/D5/slides PDFs.
-Install requirements-docs.txt first. Allow several minutes; hardware affects runtime.
-Logs and replay CSVs go under build/; a new timing campaign goes to
-`results/raw/reproduced_width_sweep.csv`. The historical timing CSV is preserved.
+This builds all targets, runs 20 CTests and independent evaluator tests,
+executes all eight full-scale D5 replays, and runs the full-scale benchmark
+(six widths, A/B, five repetitions). It verifies deterministic counters against
+the published CSV, then exports the exact width-16384 input and compares all
+500000 A/B evaluator answers. Finally it regenerates every shared figure and PDF.
+Install requirements-docs.txt first; allow several minutes.
 
-Regenerate only the committed figures and documents, with no C++ execution:
+New timing rows are saved to `build/validation/full_scale_reproduced.csv`.
+The original published timing CSV remains unchanged. The saved seed-253 input
+is a width-1 base: `scripts/export_width_workload.py` applies the same range
+mapping as the benchmark to export any measured width. See results/raw/workloads.md.
+CI uploads CSVs, runner/compiler details, test logs and a release-status report.
+A passing development pipeline does not mean the release checker has no blockers.
+
+Regenerate figures and documents without running C++:
 ```bash
 python3 scripts/export_docs.py
 ```
-The historical plot uses 60 recorded rows (5 runs x 6 widths x 2 structures).
-Its caption records the raw file and script. New timings are a separate
-range_width_sweep-based campaign, not a claim to reproduce the original
-unrecorded operation stream byte for byte. Original-input provenance and the
-required full-scale timing campaign remain incomplete.
+The full-scale renderer creates SVG/PNG runtime, counter and calibrated-model
+figures from the committed 60-row CSV. It preserves zero counter values and
+shows sample standard deviations. The model constants are fitted to the same
+data; its curve is not an independent prediction. The earlier 100000-element
+CSV and its two SVG plots remain historical evidence; its original operation
+stream was not recorded, so exact stream reproduction is not claimed.
 
 ## Repository map
 | Path | Contents |
@@ -156,10 +164,10 @@ required full-scale timing campaign remain incomplete.
 ## Results at a glance
 | Case | Recorded finding |
 |---|---|
-| Width 1, n=q=100000 | A 0.022977 s; B 0.018803 s (means of five) |
-| Width 4096 | A 0.111120 s; B 0.089405 s |
-| Width 32768 | A 0.133195 s; B 0.161713 s |
-| Width n=100000 | A 0.001917 s; B 0.241852 s |
+| Width 1, n=q=1000000 | A 0.4364 s; B 0.6297 s (means of five) |
+| Width 64 | A 1.0668 s; B 0.7486 s |
+| Width 1000 | A 2.0254 s; B 2.1285 s; spreads overlap |
+| Width n=1000000 | A 0.0173 s; B 7.7966 s |
 | Full-scale D5 replay | All 8 target/mode pairs pass at n=q=1000000 |
 | Primed push probe, n=1000000 | 39 pushes per probe; 19500000 over 500000 probes |
 | Aligned B workload, q=1000000 | 1000000 full blocks; 0 partial elements |
@@ -167,18 +175,21 @@ required full-scale timing campaign remain incomplete.
 See REPORT.md for spread, method and limits.
 
 ## Known limitations and release status
-- A lifecycle guard required by INTERFACE.md is missing in update/query before build;
-  This remains an unresolved API issue. Current workload entry points always build first.
-- Individual PDFs need exact uppercase names; Harshal's D2 PDF is missing.
-- Reviewed PRs, instructor access and the final annotated tag remain release tasks.
-- The recorded timing campaign is n=q=100000, not the required full-scale campaign.
-  No cache-profiler output supports causal cache claims.
+- A lifecycle/mode validation was fixed by Naresh in PR #27.
+- B still needs configurable-block-size overflow and mode validation checks.
+  The menu still needs uint64 seed parsing; CLI seed support is separate.
+- Individual proofs other than D5 exceed the one-to-two-page guideline.
+  D1 lacks its name/roll inside the PDF; D2/D3/D4 also need uppercase filenames.
+- Every member needs a genuine peer-approved PR; interface sign-offs,
+  instructor access and the final annotated tag remain release tasks.
+- Full-scale five-repeat timings are recorded. The fitted curve uses those
+  same data; cache claims still need profiler evidence.
 - REPORT.pdf and slides.pdf are generated from checked-in sources. Individual
   derivations other than D5 remain with their named owners.
 - The modulo-only variant is a D3 derivation, not a supported calibration command.
 
 Run
-`python3 scripts/submission_check.py` to check artifact paths, and add
+`python3 scripts/submission_check.py` to check exact artifact paths and proof page counts/roll numbers, and add
 `--require-final-tag` only when preparing the completed release.
 Do not create a final tag while these blockers remain.
 
@@ -186,4 +197,5 @@ Do not create a final tag while these blockers remain.
 See TOOLS.md for AI use and representative prompts. The report lists source
 files and the assigned Project 7 reading; members must cite the external
 sources they actually consulted. No library container replaces either structure.
+
 

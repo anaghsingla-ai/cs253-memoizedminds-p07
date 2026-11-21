@@ -17,12 +17,12 @@ The following tools form the shared development environment for the project and 
 
 | Name | Project responsibility |
 |---|---|
-| Naresh | Structure A — Lazy Segment Tree |
-| Harshal | Structure B — Square-Root Decomposition |
-| Bhuvaneesh Vijayvargiya | Architect — application architecture, integration, interfaces and documentation |
-| Arush Agrawal | Oracle — brute-force reference implementation and differential testing |
-| Anagh Singla | Adversary — adversarial workloads and correctness stress testing |
-| Ranveer | Analyst — benchmarking and performance analysis |
+| Naresh | Structure A - Lazy Segment Tree |
+| Harshal | Structure B - Square-Root Decomposition |
+| Bhuvaneesh Vijayvargiya | Architect - application architecture, integration, interfaces and documentation |
+| Arush Agrawal | Oracle - brute-force reference implementation and differential testing |
+| Anagh Singla | Adversary - adversarial workloads and correctness stress testing |
+| Ranveer | Analyst - benchmarking and performance analysis |
 
 ## 3. AI tools
 
@@ -64,7 +64,17 @@ Naresh used Codex to apply the review feedback on pre-build calls, mode
 validation, and the D1 submission. Codex added regression coverage, updated the
 previously authored Markdown proof, and renamed the submitted PDF.
 
-- Representative prompt — "Fix `update()` and `query()` before `build()` so they
+- Representative prompt - "Fix `update()` and `query()` before `build()` so they
   throw `logic_error`, including empty ranges. Validate the mode. Complete
   `D1.md` and rename the PDF to `D1_250001052.pdf`."
 
+
+
+## Anagh: shared reproducibility integration, 21 November 2026
+User request: "do all the work that I can do for team and for individual".
+AI assistance connected the existing Analyst benchmark to CMake and the shared
+pipeline, added exact-width input export and CSV/evaluator cross-checks, and
+regenerated the shared report/slides/figures from committed measurements.
+The plots label same-data calibration honestly. Teammate algorithms and individual
+proof content were not edited. Python validation and GitHub CI provide execution
+evidence; peer review, source attribution and individual sign-offs remain human.

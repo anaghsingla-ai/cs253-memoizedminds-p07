@@ -27,6 +27,8 @@ target_link_libraries(oracle_core PUBLIC cs253_contracts range_structures)
 
 add_library(bench_core STATIC bench/module.cpp)
 target_link_libraries(bench_core PUBLIC cs253_contracts range_structures)
+add_executable(full_scale_benchmark bench/run_full_scale.cpp)
+target_link_libraries(full_scale_benchmark PRIVATE bench_core)
 
 # Adversary generator and CLI.
 add_library(cs253_adversary STATIC adversary/module.cpp)
@@ -104,7 +106,7 @@ add_test(NAME calibration_menu
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     foreach(target IN ITEMS range_structures app_core oracle_core bench_core cs253_adversary
-                            adversary_generate adversary_replay_check calibration contract_smoke structB_test app_test
+                            full_scale_benchmark adversary_generate adversary_replay_check calibration contract_smoke structB_test app_test
                             adversary_test oracle_test differential_harness benchmark_smoke)
         target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
     endforeach()
@@ -122,3 +124,4 @@ add_custom_target(all_checks
             oracle_test differential_harness benchmark_smoke adversary_generate adversary_replay_check
     USES_TERMINAL
 )
+

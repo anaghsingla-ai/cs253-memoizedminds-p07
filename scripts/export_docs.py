@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import statistics
 import pymupdf as fitz
+from render_benchmark_figures import render
 
 ROOT = Path(__file__).resolve().parents[1]
 FIG = ROOT / "results/figures"
@@ -166,10 +167,12 @@ def report_pdf():
     intro=parts.pop(0)
     for index,part in enumerate(parts):
         if index==0: part=intro+"\n"+part
-        add_markdown_page(doc,part,"PROJECT 7 - TEAM REPORT")
+        for chunk in part.split("<!-- page -->"):
+            add_markdown_page(doc,chunk,"PROJECT 7 - TEAM REPORT")
         if part.startswith("## 11."):
-            add_svg_page(doc,"width_sweep_time.svg","Figure 1 - Runtime and spread")
-            add_svg_page(doc,"width_sweep_counters.svg","Figure 2 - Counted work")
+            add_svg_page(doc,"full_scale_time.svg","Figure 1 - Full-scale runtime and spread")
+            add_svg_page(doc,"full_scale_counters.svg","Figure 2 - Full-scale counted work")
+            add_svg_page(doc,"predicted_vs_measured.svg","Figure 3 - Calibrated model and measurements")
     numbered_save(doc,ROOT/"REPORT.pdf")
 
 def d5_pdf():
@@ -224,10 +227,12 @@ def slides_pdf():
 
 def main():
     svg_plots()
+    render(ROOT/"results/raw/full_scale_width_sweep.csv", FIG)
     report_pdf()
     d5_pdf()
     slides_pdf()
 
 if __name__=="__main__":
     main()
+
 

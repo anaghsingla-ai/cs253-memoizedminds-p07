@@ -70,3 +70,7 @@ Testing/
 # Project profiling outputs
 *.profraw
 perf.data*
+__pycache__/
+results/raw/full_scale_seed*.txt
+results/raw/width_*_seed*.txt
+
