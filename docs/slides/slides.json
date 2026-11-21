@@ -101,37 +101,34 @@
     ]
   },
   {
-    "title": "Measured widths bracket the crossover",
+    "title": "Full-scale means bracket two changes",
     "subtitle": "Analyst - Ranveer - D6",
-    "figure": "width_sweep_time.svg",
+    "figure": "full_scale_time.svg",
     "body": [
-      "Prediction: full-range A is O(1); B handles about n/b blocks.",
-      "Measured at n=q=100000: B wins through 4096; A wins at 32768.",
-      "Five repetitions per point; error bars show sample SD."
+      "n=q=1000000; seed 253; five trials per structure and width.",
+      "A wins at width 1; B wins at 64; A regains the lower mean at 1000.",
+      "Crossover brackets: 1..64 and 64..1000; nearby trials still needed."
     ]
   },
   {
-    "title": "Counters explain the work",
+    "title": "Cost model: calibrated after measurement",
     "subtitle": "Analyst - Ranveer - D6",
     "body": [
-      "D6: minimizing n/b+b gives b near sqrt(n).",
-      "At width 4096: A 1.58M pushes; B 1.19M full blocks.",
-      "At width 32768: A 2.14M pushes; B 10.24M full blocks.",
-      "At full width: A 100000 root visits; B 31.6M full blocks.",
-      "Sequential scans may explain constants; cache claims need profiler output.",
-      "A predicted-time curve and full-scale timing campaign remain to be added."
-    ]
+      "A: node visits + pushes. B: full blocks + element scans.",
+      "Dashed curves fit these same means; they are not independent predictions.",
+      "Full width: A visits 1M roots; B accesses 1B full blocks."
+    ],
+    "figure": "predicted_vs_measured.svg"
   },
   {
     "title": "Reproduce, review, then tag",
     "subtitle": "Team release checklist",
     "body": [
-      "Build from a fresh clone; run bash scripts/run_all.sh.",
-      "D5: all eight full-scale correctness replays already pass.",
-      "Owners: lifecycle fix, D2 PDF, uppercase filenames and named derivations.",
-      "Analyst: n=q=1000000 timings, >=5 runs, reproducible input recipe.",
-      "Each member needs a PR reviewed by another member.",
-      "Finish blockers, obtain review, then create the annotated final tag."
+      "Fresh clone: install requirements-docs.txt; run bash scripts/run_all.sh.",
+      "D5: eight full-scale correctness replays; exact counters verified.",
+      "Owners: B bounds/mode checks, menu seeds, 1-2-page named proofs.",
+      "Peer-approved PRs and interface sign-offs must be genuine.",
+      "Verify instructor access, then tag the completed release and submit its SHA."
     ]
   }
 ]

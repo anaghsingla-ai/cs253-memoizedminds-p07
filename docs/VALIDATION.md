@@ -38,10 +38,25 @@ sizes 0,1,17,50,257, both modes, 511 operations/case, and A/B/oracle.
 It checks deterministic stdout and rejects malformed input.
 Run python3 tests/evaluator_test.py --build-dir build.
 
-## Timing evidence remains separate
-results/raw/width_sweep.csv records 5 repetitions for each structure at 6 widths,
-all n=q=100000, seed 253. The new scale checks neither replace those timing
-measurements nor provide five-run full-scale timing evidence.
-The reported timing machine is in results/machine.md; GitHub runners are not
-that machine. REPORT.md sections 9-12 describe the remaining measurement
-limitations and reproducibility requirements.
+## Full-scale benchmark reproduction
+The Analyst's `results/raw/full_scale_width_sweep.csv` records 60 rows at
+n=q=1000000, seed 253: six widths, A/B, five trials. Machine details are in
+results/machine.md. The older width_sweep.csv is a separate 100000-element campaign.
+
+The shared pipeline builds full_scale_benchmark from the existing Analyst source,
+runs it in build/full-scale-run, and checks its deterministic counters against
+the committed CSV. Timings depend on the runner and are not expected to match.
+CI artifacts record that runner and compiler separately from the Analyst machine.
+The width-1 base input is transformed using the exact benchmark range mapping;
+width 16384 is replayed through the evaluator for A/B and all 500000 answer rows
+are compared. Independent arithmetic remains covered by the small Python tests.
+
+Figures and REPORT.pdf/slides.pdf regenerate from the committed raw CSV. The
+runtime model is calibrated on the same data, explicitly labeled in the plot;
+no independent numerical prediction is claimed. See REPORT.md for the earlier
+qualitative-model commit and full-scale measurement chronology.
+
+The pipeline invokes submission_check.py --report-only so that known individual
+proof packaging blockers are recorded without pretending the release is ready.
+Run the checker without that flag for the release gate. Instructor access,
+peer approvals, interface sign-offs and final-tag submission remain manual checks.

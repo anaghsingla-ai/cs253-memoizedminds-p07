@@ -12,15 +12,40 @@ All full-scale timings in `results/raw/full_scale_width_sweep.csv` were generate
 - **Width sweep**: `w in {1, 64, 1000, 16384, 262144, 1000000}` (`5` repetitions per width, fresh structure per trial)
 
 ## How to Reproduce the Exact Input File and CSV
-Run from the repository root:
+The complete pipeline runs the existing driver in build/full-scale-run so it
+does not overwrite committed timing measurements:
 
 ```sh
-g++ -std=c++17 -O3 -Wall -Wextra -Wpedantic -Iinclude \
-  src/structA/module.cpp src/structB/module.cpp bench/module.cpp bench/run_full_scale.cpp \
-  -o build/run_full_scale
-
-./build/run_full_scale --save-input
-python3 results/scripts/plot_results.py results/raw/full_scale_width_sweep.csv results/figures
+bash scripts/run_all.sh
 ```
 
-Passing `--save-input` writes the full `CS253_V1` workload to `results/raw/full_scale_seed253.txt` (not committed directly to Git due to ~25 MB size, but 100% reproducible from `seed = 253` and `bench/run_full_scale.cpp`).
+The exported `build/full-scale-run/results/raw/full_scale_seed253.txt` is the
+point-width base input before width adjustment. It is not the input for every
+width. Export the exact stream used for a measured width with:
+
+```sh
+python3 scripts/export_width_workload.py \
+  build/full-scale-run/results/raw/full_scale_seed253.txt \
+  build/validation/width_16384.txt --width 16384
+python3 scripts/run_ops.py --structure A < build/validation/width_16384.txt > build/validation/A.txt
+python3 scripts/run_ops.py --structure B < build/validation/width_16384.txt > build/validation/B.txt
+cmp build/validation/A.txt build/validation/B.txt
+```
+
+For width w (clamped to n), an operation already of width w keeps its range;
+otherwise l becomes l modulo (n-w+1) and r becomes l+w. Initial values, seed,
+coefficients and operation order are preserved. This matches set_workload_width
+in bench/module.cpp. The pipeline checks width 16384 through both evaluators.
+
+The new timing CSV is copied to build/validation/full_scale_reproduced.csv.
+scripts/verify_benchmark_csv.py checks dimensions, modes, seed, all repetitions
+and deterministic counters against the published data. Timing equality is not
+required across machines. Input streams are generated files and remain ignored.
+
+Regenerate the published figures from the published CSV without rerunning timings:
+```sh
+python3 scripts/render_benchmark_figures.py
+```
+The original Matplotlib plotting script remains available for the Analyst.
+The shared renderer uses only the documented PyMuPDF dependency and labels the
+two-constant fit as same-data calibration.

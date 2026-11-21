@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 import subprocess
+import pymupdf
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = [
@@ -17,10 +18,24 @@ REQUIRED = [
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--require-final-tag", action="store_true")
+    parser.add_argument("--report-only", action="store_true", help="Report release blockers without failing a development pipeline")
     args = parser.parse_args()
-    missing = [name for name in REQUIRED if not (ROOT / name).is_file()]
+    def exact_file(name):
+        path = ROOT / name
+        return path.is_file() and path.name in {p.name for p in path.parent.iterdir()}
+    missing = [name for name in REQUIRED if not exact_file(name)]
     for name in REQUIRED:
         print(("MISSING " if name in missing else "OK      ") + name)
+    for name in REQUIRED:
+        if name.startswith("docs/derivations/") and name not in missing:
+            with pymupdf.open(ROOT / name) as pdf:
+                pages = len(pdf)
+                roll = Path(name).stem.split("_")[1]
+                content = "".join(page.get_text() for page in pdf)
+                valid = 1 <= pages <= 2 and roll in content
+            print(("OK      " if valid else "BLOCKER ") + f"{name}: {pages} pages; roll {'present' if roll in content else 'absent'}")
+            if not valid:
+                missing.append(name + " content/page requirements")
     for folder, pattern in [("results/raw", "*.csv"), ("results/figures", "*")]:
         entries = [p for p in (ROOT / folder).glob(pattern) if p.is_file() and not p.name.startswith(".")]
         if not entries:
@@ -35,8 +50,10 @@ def main():
             missing.append("annotated final tag")
     print("Manual review: report content, official evaluator format, five-run measurements,")
     print("prediction history, instructor access, member attribution and approved PRs.")
-    return bool(missing)
+    print(f"Release blockers found: {len(missing)}")
+    return bool(missing) and not args.report_only
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 

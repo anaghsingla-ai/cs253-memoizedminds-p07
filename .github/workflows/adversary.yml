@@ -47,6 +47,24 @@ jobs:
         run: python3 -m pip install -r requirements-docs.txt
       - name: Run the documented fresh-clone pipeline
         run: bash scripts/run_all.sh
+      - name: Record runner and compiler
+        if: always()
+        run: |
+          mkdir -p build/validation
+          uname -a > build/validation/runner.txt
+          c++ --version >> build/validation/runner.txt
+          lscpu >> build/validation/runner.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: submission-validation
+          path: |
+            build/validation/*.csv
+            build/validation/runner.txt
+            build/validation/submission_status.txt
+            build/Testing/Temporary/LastTest.log
+          retention-days: 30
+
 
 
 
