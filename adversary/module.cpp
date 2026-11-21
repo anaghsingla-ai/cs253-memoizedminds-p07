@@ -1,4 +1,3 @@
-// Adversarial workload generators. Tool assistance is declared in TOOLS.md.
 #include "cs253/pipeline.hpp"
 #include <algorithm>
 #include <cmath>
@@ -11,7 +10,6 @@ using namespace std;
 namespace cs253 {
 namespace {
 
-// Add one instruction. The structures execute it later.
 void add_update(Workload& workload, size_t begin, size_t end,
                 Value gain, Value offset) {
     Update update;
@@ -29,7 +27,6 @@ void add_query(Workload& workload, size_t begin, size_t end) {
     workload.operations.push_back(query);
 }
 
-// Return ceil(sqrt(n)). Division avoids overflowing when squaring a large size.
 size_t automatic_block_size(size_t n) {
     if (n == 0) {
         return 1;
@@ -50,7 +47,6 @@ size_t automatic_block_size(size_t n) {
     return block_size;
 }
 
-// Follow left children until two leaves remain, then cut between them.
 size_t deepest_boundary(size_t lo, size_t hi) {
     while (hi - lo > 2) {
         size_t length = hi - lo;
@@ -77,7 +73,6 @@ Range maximum_push_range(size_t n) {
             middle++;
         }
 
-        // Put one boundary deep in each half.
         range.begin = deepest_boundary(0, middle);
         if (n - middle > 1) {
             range.end = deepest_boundary(middle, n);
@@ -116,8 +111,6 @@ void check_config(AdversarialTarget target, const GeneratorConfig& config) {
         }
     }
 
-    // Exact gains are -1, 0 or 1. Initial |x| <= 1000 and every |offset| <= 31.
-    // This also bounds offsets that accumulate in pending tags.
     Value largest_value = numeric_limits<Value>::max();
     uint64_t safe_operations =
         static_cast<uint64_t>((largest_value - 1000) / 31);
@@ -160,7 +153,6 @@ vector<size_t> make_widths(size_t n, size_t requested_width,
 
     sort(widths.begin(), widths.end());
 
-    // Remove repeated widths with a normal loop.
     vector<size_t> different_widths;
     for (size_t i = 0; i < widths.size(); i++) {
         if (different_widths.empty()) {
@@ -180,7 +172,7 @@ void add_negative_operation(Workload& workload, size_t phase,
     if (phase == 0) {
         add_update(workload, 0, n, -1, 7);
     } else if (phase == 1) {
-        // Query before another negation could hide a missing extrema swap.
+
         add_query(workload, 0, n);
     } else if (phase == 2) {
         add_update(workload, 0, n, 1, 3);
@@ -214,7 +206,7 @@ void add_negative_operation(Workload& workload, size_t phase,
     }
 }
 
-} // namespace
+}
 
 Workload generate(AdversarialTarget target, const GeneratorConfig& config) {
     check_config(target, config);
@@ -255,13 +247,11 @@ Workload generate(AdversarialTarget target, const GeneratorConfig& config) {
             continue;
         }
 
-        // Keep one random draw per nonempty operation, even if this target
-        // uses fixed corrections. This preserves earlier seeded workloads.
         Value offset = static_cast<Value>(rng() % 63) - 31;
 
         if (target == AdversarialTarget::push_downs) {
             if (i % 2 == 0) {
-                // A reset is always nonidentity, including a reset to zero.
+
                 add_update(workload, 0, n, 0, offset);
             } else {
                 add_query(workload, push_probe.begin, push_probe.end);
@@ -321,4 +311,4 @@ Workload generate(AdversarialTarget target, const GeneratorConfig& config) {
     return workload;
 }
 
-} // namespace cs253
+}

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Execute (not just generate) all D5 families at the required full scale.
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 build="${1:-$root/build}"

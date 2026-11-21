@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Compare the readable rewrite with the previously committed generator.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -47,7 +46,6 @@ for target in push_downs alternating_negative_gain block_friendly range_width_sw
 done
 echo "$comparisons old/new workload comparisons passed"
 
-# Invalid input must return the documented error status, not silently wrap.
 expect_cli_error() {
     status=0
     "$build_directory/adversary_generate" "$@" \
