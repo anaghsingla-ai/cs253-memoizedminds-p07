@@ -1,5 +1,5 @@
 # Project 7 - Lazy Propagation and What Composes
-Team MemoizedMinds | CS 253 / MA 253 | Submission review, 21 November 2026
+Team MemoizedMinds | CS 253 / MA 253 | Technical report, 21 November 2026
 
 ## 1. Team and contributions
 | Member / roll | Role | Module / derivation |
@@ -20,15 +20,12 @@ The Adversary supplies all required workload families and their verification.
 The Analyst supplies timing, operation counters, raw CSV and the cost model.
 
 Contribution links in this repository: Harshal PRs #2 and #8; Bhuvaneesh #5 and #9;
-Arush #12 and #18; Anagh #3 and #17, with this submission audit in #21.
-Naresh and Ranveer have implementation/data commits, but must provide their own
-reviewed PR links rather than treating another member's integration PR as theirs.
-These references describe observed history; they are not claims of peer approval.
+Arush #12 and #18; Anagh #3 and #17, with additional D5 verification in #21.
+Structure A and benchmark contributions are recorded in their module/data
+commit history. These links identify contributions, not evidence of peer approval.
 
-This report packages shared work. D1, D2, D3, D4 and D6 remain the named owners'
-individual submissions. Anagh's branch leaves their implementations unchanged.
-See docs/SUBMISSION_AUDIT.md for exact outstanding actions and filename fixes.
-The final tag is intentionally withheld until those blockers are resolved.
+Each member submits their derivation separately under docs/derivations/.
+Section 12 records remaining implementation, measurement and submission limitations.
 
 ## 2. Problem and application
 The calibration table contains n sensor readings. A correction of range [l,r)
@@ -108,7 +105,8 @@ One push means one parent propagation, not two child applications.
 The array layout avoids a library container substituting for the structure.
 Maintaining both extrema is necessary for negative gains. Rejecting unsupported
 overflow is part of the declared domain, not evidence of arbitrary-precision
-support. A's owner must add lifecycle guards and consistent mode validation.
+support. A currently lacks the lifecycle guards and consistent mode validation required
+by the interface; these remain unresolved API limitations.
 
 ## 5. Structure B: square-root decomposition
 src/structB/module.cpp stores raw values and a vector of block records. With
@@ -136,7 +134,8 @@ reset to automatic for the block-friendly generator's alignment guarantee.
 
 The simpler contiguous loops can have favorable constants, but this report
 does not claim measured cache misses or vectorization. Those claims need
-profiler evidence. Harshal must finish the named D2 PDF and configuration audit.
+profiler evidence. The D2 PDF and configurable-block-size edge-case checks
+remain incomplete.
 
 ## 6. Beyond the lecture: affine tags and modulo
 Affine updates compose because applying f(x)=a1*x+b1 and then g(x)=a2*x+b2
@@ -173,8 +172,8 @@ EXACT and 42 for MODULAR. Failure evidence includes a reproducing workload and
 a shrinker; tests check that deletion of any remaining operation removes the
 failure in the test scenario.
 
-The baseline main revision passed 12 CTest checks. This audit adds eight replay
-checks at n=4097,q=8192, bringing CTest to 20 passing checks. Existing D5 tests
+The baseline main revision passed 12 CTest checks. Eight additional replay
+checks at n=4097,q=8192 bring CTest to 20 passing checks. Existing D5 tests
 compare against a separate wide-integer array in 240 deterministic cases,
 audit invariants and exhaust all query intervals at small n.
 The new evaluator checker compares the parser/CLI output against Python
@@ -183,9 +182,9 @@ revision-specific CI evidence rather than treating historical counts as current.
 
 | Date | Module | Symptom / discovery | Status |
 |---|---|---|---|
-| 21 Nov 2026 | Shared docs | D5 PDF lowercase name broke documented path; tree audit | Correct uppercase artifact restored on this PR |
-| 21 Nov 2026 | A | Empty update/query before build return instead of throwing; source audit | Naresh must fix in his own PR |
-| 21 Nov 2026 | App menu | uint64 seed limits pass through long long casts; source audit | Architect must test and fix |
+| 21 Nov 2026 | Shared docs | D5 PDF lowercase name broke documented path; tree audit | Correct uppercase artifact restored in commit 8c32fd6 |
+| 21 Nov 2026 | A | Empty update/query before build return instead of throwing; source audit | Unresolved |
+| 21 Nov 2026 | App menu | uint64 seed limits pass through long long casts; source audit | Unresolved |
 | 21 Nov 2026 | Validation | Million-element D5 check only generated data; test audit | Added actual A/B replay in ad65d1a |
 | 21 Nov 2026 | Shared evaluator | Human-readable output included timings/headings | Added deterministic adapter in 7d2326e |
 
@@ -232,10 +231,9 @@ The six recorded widths only bracket a crossover between 4096 and 32768;
 they do not measure its precise location or establish a universal threshold.
 
 A formal prediction must predate the measurements it predicts. The course
-guidelines explicitly check commit chronology. This review preserves the
-existing model but does not claim that restating it now is a new prediction.
-Ranveer must link the actual earlier model commit and subsequent data commit.
-If that sequence cannot be demonstrated, report the limitation honestly.
+guidelines explicitly check commit chronology. The earlier cost model is retained; its timestamped source commit and the
+subsequent measurement commit are not yet linked in this report.
+Prediction/data commit chronology therefore remains unverified here.
 
 No coefficients have been fitted after seeing data and relabeled as predictions.
 The current figures show observed timing means with spread and separate
@@ -315,11 +313,11 @@ five-run means throughout. Full-scale replay establishes tested correctness,
 not full-scale throughput or comparative benchmark speed.
 
 ## 12. Limitations and next measurements
-The submission is not ready for the final tag until the individual handoffs
-and reviewed PR requirements in docs/SUBMISSION_AUDIT.md are complete.
+The final release still requires resolution of the following implementation,
+measurement and submission limitations.
 A has a pre-build lifecycle mismatch, the menu needs uint64 seed checks,
 D2 lacks its required PDF, and several individual PDFs have lowercase names.
-Each owner should commit and explain their own fixes.
+The full artifact list can be checked with scripts/submission_check.py.
 
 Exact arithmetic is limited to gains -1,0,1 and int64 values/composed offsets.
 Overflow is outside the workload contract; callers should not rely on recovery
@@ -339,7 +337,7 @@ checks and production oracle tests; shared implementation mistakes remain a
 general limitation of differential testing. Invariant audits must stay outside
 timed loops. A final fresh-clone run from the completed annotated tag is still
 necessary, along with instructor access and the portal's required commit SHA.
-No checkpoint history is fabricated or backdated in this review.
+The release must retain the genuine project history.
 
 ## 13. References, sources and tool use
 Primary project requirements: CS253_MA253_Lab_Projects.docx (2).pdf,
@@ -364,7 +362,6 @@ their own derivation where applicable):
 - USACO Guide: Segment Tree Beats, for the amortized modulo discussion.
 
 This list identifies the assigned reading, not a claim that every work was
-consulted. TOOLS.md declares AI assistance and representative prompts. The
-2026-11-21 shared audit uses code review, raw-data arithmetic and GitHub CI.
-Teammate-owned proofs and source modules require their own authors' sign-off.
+consulted. TOOLS.md declares AI assistance and representative prompts. Correctness evidence comes from independent arithmetic, invariant checks,
+raw-data calculations and GitHub CI. Individual proofs require their authors' sign-off.
 

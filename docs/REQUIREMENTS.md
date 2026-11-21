@@ -1,7 +1,9 @@
 # Acceptance checklist grounded in requirements PDF
 
 Source: CS253_MA253_Lab_Projects.docx.pdf, pp. 1–4, 13–14.
-Unchecked items remain outstanding; scaffold creation satisfies no algorithm requirement.
+This is a reference checklist of the course requirements, not a current-status
+report. See README.md and REPORT.md for implemented features and limitations;
+run scripts/submission_check.py for the required artifact paths.
 
 - [ ] Freeze six named roles at first checkpoint; instructor has GitHub read access.
 - [ ] A: lazy segment tree with affine tags; sum modulo 998244353 for arbitrary gains/offsets.

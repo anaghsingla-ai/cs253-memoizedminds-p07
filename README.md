@@ -133,8 +133,8 @@ python3 scripts/export_docs.py
 The historical plot uses 60 recorded rows (5 runs x 6 widths x 2 structures).
 Its caption records the raw file and script. New timings are a separate
 range_width_sweep-based campaign, not a claim to reproduce the original
-unrecorded operation stream byte for byte. Ranveer must resolve that provenance
-gap and add the required full-scale timing campaign.
+unrecorded operation stream byte for byte. Original-input provenance and the
+required full-scale timing campaign remain incomplete.
 
 ## Repository map
 | Path | Contents |
@@ -168,7 +168,7 @@ See REPORT.md for spread, method and limits.
 
 ## Known limitations and release status
 - A lifecycle guard required by INTERFACE.md is missing in update/query before build;
-  Naresh must fix and commit it. Current workload entry points always build first.
+  This remains an unresolved API issue. Current workload entry points always build first.
 - Individual PDFs need exact uppercase names; Harshal's D2 PDF is missing.
 - Reviewed PRs, instructor access and the final annotated tag remain release tasks.
 - The recorded timing campaign is n=q=100000, not the required full-scale campaign.
@@ -177,7 +177,7 @@ See REPORT.md for spread, method and limits.
   derivations other than D5 remain with their named owners.
 - The modulo-only variant is a D3 derivation, not a supported calibration command.
 
-`docs/SUBMISSION_AUDIT.md` gives the owner-by-owner handoff. Run
+Run
 `python3 scripts/submission_check.py` to check artifact paths, and add
 `--require-final-tag` only when preparing the completed release.
 Do not create a final tag while these blockers remain.
