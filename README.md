@@ -172,14 +172,20 @@ stream was not recorded, so exact stream reproduction is not claimed.
 | Primed push probe, n=1000000 | 39 pushes per probe; 19500000 over 500000 probes |
 | Aligned B workload, q=1000000 | 1000000 full blocks; 0 partial elements |
 
-See REPORT.md for spread, method and limits.
+See REPORT.md for spread, method and limits. These published timings predate the
+Structure B changes merged in PR #31; current-runner reproduction logs are
+separate. Matching counters alone do not prove identical internal work or timings.
 
 ## Known limitations and release status
 - A lifecycle/mode validation was fixed by Naresh in PR #27.
 - B still needs configurable-block-size overflow and mode validation checks.
+  For n=2 and block size SIZE_MAX, its invariant block-count expression wraps;
+  the checker can reject the built structure even when normal queries work.
   The menu still needs uint64 seed parsing; CLI seed support is separate.
-- Individual proofs other than D5 exceed the one-to-two-page guideline.
-  D1 lacks its name/roll inside the PDF; D2/D3/D4 also need uppercase filenames.
+- All six derivation PDFs have the required uppercase filenames. D1, D2 and D3
+  still span three pages; the guideline permits one or two. D1 lacks its roll
+  number inside the PDF. D4, D5 and D6 pass the page-count/roll-number checks.
+  D2's Markdown still has an unnamed draft header; D6's retains a draft status.
 - Every member needs a genuine peer-approved PR; interface sign-offs,
   instructor access and the final annotated tag remain release tasks.
 - Full-scale five-repeat timings are recorded. The fitted curve uses those

@@ -49,60 +49,22 @@ See `docs/derivations/D5.md` and `docs/derivations/D5_250001006.pdf` for the pro
 Record the generator commit with saved
 workloads. No benchmark crossover or throughput is claimed by these generators.
 
-## Review on 16 November 2026
+## Source files and compatibility
 
-Owner: Anagh Singla, roll number 250001006. All three Project 7 adversarial
-families are implemented; the width sweep is an additional family. The generator
-uses ordinary loops, explicit if/else branches, and the existing shared structs.
-`maximum_push_range` chooses the probe; `deepest_boundary` follows left children
-until two leaves remain. No teammate algorithm is changed.
+- adversary/module.cpp constructs the four workload families and their ranges.
+- adversary/export.hpp writes CS253_V1 workloads.
+- adversary/main.cpp parses arguments and invokes generation/export.
+- adversary/replay_check.cpp executes full-scale A/B checks and counter bounds.
+- tests/adversary_test.cpp supplies independent-array and edge-case checks.
 
-The C++ tests also check partial **updates**, after re-priming, against the same
-`2*h-1` maximum. Generation at one million elements and one million operations is
-checked in all four families and both modes. This is generation validation,
-not evidence that the whole team's unfinished pipeline runs at that scale.
-
-The final derivation is `docs/derivations/D5_250001006.pdf`; its Markdown source
-is `docs/derivations/D5.md`. The optional PDF export script was removed.
-Changes must be merged through a pull request approved by another member.
-Include the adversarial measurements in the final team report.
-
-## Readable C++ version - 17 November 2026
-
-The public generate() API, four workload families, seeded random draws, range
-convention and CS253_V1 output format are retained. Shared headers and teammate
-algorithms are not edited.
-
-Read the files in this order:
-
-1. adversary/module.cpp: add_update and add_query build instructions using named
-   fields; the block and boundary helpers choose ranges; generate selects the
-   family using if/else. add_negative_operation spells out the 16-step cycle.
-2. adversary/export.hpp: an ordinary indexed loop writes each update or query.
-3. adversary/main.cpp: read arguments, select the target and mode, generate,
-   then write to a file or stdout.
-4. tests/adversary_test.cpp: the independent reference array, validation,
-   differential cases, push maxima, block counters and edge cases.
-
-The shared Operation type still uses std::variant because it is part of the
-team interface. The exporter and tests use holds_alternative/get with explicit
-Update and Query names rather than pointer-based get_if shorthand. Safe numeric
-types and wide reference arithmetic are retained.
-
-check_refactor.sh compiles the previous committed CLI and compares 264 exported
-workloads byte for byte with the rewritten CLI (all targets/modes, three seeds,
-empty/uneven arrays and short operation counts). It also checks six invalid CLI
-cases. Run after building:
+The shared Operation type uses std::variant. The generator, exporter and tests
+use explicit Update/Query branches. Before changing the generator, run:
 
     bash adversary/check_refactor.sh "$PWD/build"
 
-The Actions workflow fetches history so the pinned comparison source is available.
-New checks cover both modes for aligned-block counters and the early arithmetic
-guard. Failure export now reports a write failure instead of always claiming
-that a replay file was saved.
-
-AI assistance remains declared in TOOLS.md. The simpler syntax is intended to
-help the owner read, explain and maintain the code.
+This compares 264 workloads byte for byte against the pinned earlier CLI and
+checks six invalid CLI cases. The Actions job fetches history for that comparison.
+AI assistance is declared in TOOLS.md.
 
 ## Final submission verification - 21 November 2026
 
