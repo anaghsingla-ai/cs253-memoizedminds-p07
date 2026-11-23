@@ -91,6 +91,11 @@ void LazySegmentTree::build(
     const std::vector<Value>& initial,
     Mode requested_mode
 ) {
+    if (requested_mode != Mode::modular_sum &&
+        requested_mode != Mode::exact_extrema) {
+        throw std::invalid_argument("LazySegmentTree: unsupported mode");
+    }
+
     if (initial.size() >
         static_cast<std::size_t>(INT_MAX)) {
         throw std::length_error(
@@ -382,6 +387,8 @@ Aggregate LazySegmentTree::query_tree(
 void LazySegmentTree::update(
     Range range, AffineTag tag
 ) {
+    if (!built) throw std::logic_error("LazySegmentTree: build() has not been called");
+
     if (range.begin > range.end ||
         range.end > n) {
         throw std::out_of_range(
@@ -421,6 +428,8 @@ void LazySegmentTree::update(
 
 
 Aggregate LazySegmentTree::query(Range range) {
+    if (!built) throw std::logic_error("LazySegmentTree: build() has not been called");
+
     if (range.begin > range.end ||
         range.end > n) {
         throw std::out_of_range(

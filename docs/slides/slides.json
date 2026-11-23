@@ -1,0 +1,134 @@
+[
+  {
+    "title": "Lazy Propagation and What Composes",
+    "subtitle": "CS253 / MA253 - Project 7 - Team MemoizedMinds",
+    "body": [
+      "One million readings. Bulk corrections x -> a*x+b.",
+      "Structure A: lazy segment tree",
+      "Structure B: square-root decomposition",
+      "Oracle: independent plain array"
+    ],
+    "footer": "Shared submission deck - updated 23 November 2026"
+  },
+  {
+    "title": "One interface, two arithmetic modes",
+    "subtitle": "Architect - Bhuvaneesh - D3",
+    "body": [
+      "Zero-based half-open ranges [l,r); empty ranges are valid.",
+      "EXACT: a in {-1,0,1}; int64 extrema; sum modulo P.",
+      "MODULAR: arbitrary int64 a,b; sum modulo 998244353; extrema NA.",
+      "build / update / query / counters / check_invariants",
+      "Aggregates already include the node or block's pending tag."
+    ]
+  },
+  {
+    "title": "Tags compose in a fixed order",
+    "subtitle": "Structure B owner - Harshal - D2",
+    "body": [
+      "Old f(x)=a1*x+b1, then new g(x)=a2*x+b2",
+      "compose(g,f) = (a2*a1, a2*b1+b2)",
+      "Sum: S' = a*S+b*L (mod P)",
+      "Negative gain: min'=-old_max+b; max'=-old_min+b",
+      "Add 3 then negate: -x-3. Reverse order: -x+3."
+    ]
+  },
+  {
+    "title": "Stop at full cover, push at the boundary",
+    "subtitle": "Structure A owner - Naresh - D1",
+    "diagram": "tree",
+    "body": [
+      "A node includes its own tag; its children may lag.",
+      "Push applies the parent tag after each child's older tag.",
+      "Full cover stops; partial updates push, descend, then pull.",
+      "Build/space O(n). Range operations O(log n)."
+    ]
+  },
+  {
+    "title": "Tag whole blocks; scan only the ends",
+    "subtitle": "Structure B owner - Harshal - D2",
+    "diagram": "blocks",
+    "body": [
+      "Full block: map aggregates and compose the tag in O(1).",
+      "Partial update: push the block tag, update raw values, then rebuild.",
+      "Partial query: map each covered raw value and combine its answer.",
+      "O(n/b+b) worst case. b=ceil(sqrt(n)); short last block uses its length."
+    ]
+  },
+  {
+    "title": "An independent array checks the answers",
+    "subtitle": "Oracle owner - Arush - D4",
+    "body": [
+      "Production differential test: 1000000 operations per mode on 128 values.",
+      "EXACT seed 253; MODULAR seed 42. Failing cases are shrunk.",
+      "D5: 240 small independent-array cases plus exact counter checks.",
+      "Expanded CTest suite: 20/20 passed.",
+      "30 evaluator/reference cases; 12 malformed-input rejections passed."
+    ]
+  },
+  {
+    "title": "Inputs constructed to expose failures",
+    "subtitle": "Adversary - Anagh Singla, 250001006 - D5",
+    "body": [
+      "push_downs: whole reset, then a deepest two-boundary probe.",
+      "alternating_negative_gain: inspect extrema before negations can cancel.",
+      "block_friendly: one aligned block; zero partial elements in B.",
+      "range_width_sweep: points to whole-array widths and several alignments.",
+      "For n=2^h: 2*h-1 pushes/probe; n=1000000: exact maximum 39."
+    ]
+  },
+  {
+    "title": "Full-scale D5 verification is executed",
+    "subtitle": "All four targets, both modes - seed 253",
+    "body": [
+      "Each case: 1000000 elements and 1000000 operations.",
+      "Every A/B query agrees; final invariant audits pass.",
+      "Primed push queries also match an independent uniform-array formula.",
+      "500000 push probes -> 19500000 pushes.",
+      "Block-friendly: 1000000 full blocks, 0 partial elements.",
+      "These are correctness counts, not five-run timings."
+    ]
+  },
+  {
+    "title": "Modulo needs more than a lazy sum tag",
+    "subtitle": "Architect - Bhuvaneesh - D3",
+    "body": [
+      "[1,5] and [3,3] have the same sum 6 and length 2.",
+      "Modulo 4 changes their sums to 2 and 6: summary information is insufficient.",
+      "Modulo-only variant: skip nodes with max<k; recurse otherwise.",
+      "A value that changes becomes less than half its previous value.",
+      "With point assignments: O((n+m)*log(n)*log(C)) total.",
+      "The modulo-only variant is a derivation, not a calibration command."
+    ]
+  },
+  {
+    "title": "Full-scale means bracket two changes",
+    "subtitle": "Analyst - Ranveer - D6 | Published campaign, before PR #31",
+    "figure": "full_scale_time.svg",
+    "body": [
+      "n=q=1000000; seed 253; five trials per structure and width.",
+      "A wins at width 1; B wins at 64; A regains the lower mean at 1000.",
+      "Crossover brackets: 1..64 and 64..1000; nearby trials still needed."
+    ]
+  },
+  {
+    "title": "Cost model: calibrated after measurement",
+    "subtitle": "Analyst - Ranveer - D6 | Fit of the published campaign",
+    "body": [
+      "A: node visits + pushes. B: full blocks + element scans.",
+      "Dashed curves fit these same means; they are not independent predictions.",
+      "Full width: A visits 1M roots; B accesses 1B full blocks."
+    ],
+    "figure": "predicted_vs_measured.svg"
+  },
+  {
+    "title": "Reproduce, review, then tag",
+    "subtitle": "Team release checklist",
+    "body": [
+      "Fresh clone: install requirements-docs.txt; run bash scripts/run_all.sh.",
+      "Current main CI: 20 CTests, eight full-scale D5 replays and 60 timing rows.",
+      "Owners: B mode/bounds, menu seeds, D1-D3 proof length and sign-offs.",
+      "Published timing data predate current B loops; CI logs record current timings.",
+      "Obtain peer reviews and instructor access; finish the release gate before tagging."
+    ]
+  }
+]

@@ -27,12 +27,16 @@ target_link_libraries(oracle_core PUBLIC cs253_contracts range_structures)
 
 add_library(bench_core STATIC bench/module.cpp)
 target_link_libraries(bench_core PUBLIC cs253_contracts range_structures)
+add_executable(full_scale_benchmark bench/run_full_scale.cpp)
+target_link_libraries(full_scale_benchmark PRIVATE bench_core)
 
 # Adversary generator and CLI.
 add_library(cs253_adversary STATIC adversary/module.cpp)
 target_link_libraries(cs253_adversary PUBLIC cs253_contracts)
 add_executable(adversary_generate adversary/main.cpp)
 target_link_libraries(adversary_generate PRIVATE cs253_adversary)
+add_executable(adversary_replay_check adversary/replay_check.cpp)
+target_link_libraries(adversary_replay_check PRIVATE cs253_adversary range_structures)
 
 # Main calibration application.
 add_executable(calibration app/main.cpp)
@@ -43,7 +47,7 @@ target_compile_definitions(calibration PRIVATE
 
 # Tests.
 add_executable(contract_smoke tests/contract_smoke.cpp)
-target_link_libraries(contract_smoke PRIVATE range_structures)
+target_link_libraries(contract_smoke PRIVATE range_structures oracle_core)
 
 add_executable(structB_test tests/structB_test.cpp src/structB/module.cpp)
 target_link_libraries(structB_test PRIVATE cs253_contracts)
@@ -68,6 +72,12 @@ add_test(NAME contract_smoke COMMAND contract_smoke)
 add_test(NAME structB_test COMMAND structB_test)
 add_test(NAME app_test COMMAND app_test)
 add_test(NAME adversary_test COMMAND adversary_test)
+foreach(target IN ITEMS push_downs alternating_negative_gain block_friendly range_width_sweep)
+    foreach(mode IN ITEMS EXACT MODULAR)
+        add_test(NAME replay_${target}_${mode}
+            COMMAND adversary_replay_check ${target} ${mode} 4097 8192 253 63)
+    endforeach()
+endforeach()
 add_test(NAME adversary_scale COMMAND adversary_test --scale)
 set_tests_properties(adversary_scale PROPERTIES LABELS scale TIMEOUT 180)
 add_test(NAME adversary_cli COMMAND adversary_generate alternating_negative_gain 17 64 253 3 EXACT)
@@ -96,7 +106,7 @@ add_test(NAME calibration_menu
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     foreach(target IN ITEMS range_structures app_core oracle_core bench_core cs253_adversary
-                            adversary_generate calibration contract_smoke structB_test app_test
+                            full_scale_benchmark adversary_generate adversary_replay_check calibration contract_smoke structB_test app_test
                             adversary_test oracle_test differential_harness benchmark_smoke)
         target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
     endforeach()
@@ -111,6 +121,7 @@ endif()
 add_custom_target(all_checks
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
     DEPENDS calibration contract_smoke structB_test app_test adversary_test
-            oracle_test differential_harness benchmark_smoke adversary_generate
+            oracle_test differential_harness benchmark_smoke adversary_generate adversary_replay_check
     USES_TERMINAL
 )
+

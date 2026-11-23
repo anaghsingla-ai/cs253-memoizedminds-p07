@@ -1,14 +1,36 @@
 # Reproducible results
 
-This merged snapshot includes `raw/width_sweep.csv`, a plotting script at
-`scripts/plot_results.py`, and machine/compiler metadata in `machine.md`. The supplied CSV
-contains 100,000-element / 100,000-operation measurements with five repetitions per width.
-It is not the required full-scale one-million-element / one-million-operation campaign.
+`raw/full_scale_width_sweep.csv` is the published full-scale campaign:
+1,000,000 elements, 1,000,000 operations, seed 253, six widths, A/B and five
+repetitions per point (60 rows). `raw/width_sweep.csv` retains the earlier
+100,000-element campaign. The recorded timing machine is in `machine.md`.
 
-Preserve per-run CSV logs with seed and workload. Record at least five repetitions and report
-mean plus a spread statistic; do not report only the best time. Preserve query checksums, mode,
-generator revision and exact workload alongside each CSV. Correctness validation and logging
-should remain outside timed loops.
+From the repository root, run:
 
-The benchmark function currently compiles in `support_modules`, but a CLI/application integration
-that invokes it from `calibration --all` remains outstanding.
+```sh
+bash scripts/run_all.sh
+```
+
+The pipeline builds and tests the project, executes eight full-scale D5 replays,
+runs the existing full-scale benchmark, checks deterministic counters against the
+published CSV and compares 500000 exact-width evaluator answers. New timings
+are written to `build/validation/full_scale_reproduced.csv`; the published raw
+CSV is preserved. See `raw/workloads.md` for exact per-width input export.
+
+To regenerate every figure and the shared PDFs from committed data:
+
+```sh
+python3 scripts/export_docs.py
+```
+
+The full-scale SVG/PNG figures come from `scripts/render_benchmark_figures.py`.
+Historical SVG figures come from `scripts/export_docs.py`. The Analyst's
+`results/scripts/plot_results.py` remains available as an alternative renderer.
+Model constants fitted to these same data are descriptive calibration, not an
+independent prediction. Captions record the source CSV, script, units and spread.
+
+Timings and implementation revisions must be kept together: the published
+campaign predates the Structure B changes merged through PR #31. Current CI
+reproduction records current-code timings on a separately recorded runner;
+deterministic counter agreement does not establish identical elapsed times or
+identical internal work. Use those new logs for claims about the current code.

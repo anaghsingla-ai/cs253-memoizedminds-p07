@@ -1,12 +1,11 @@
 #pragma once
-// Standalone replay exporter. Tool assistance is declared in TOOLS.md.
+
 #include "cs253/types.hpp"
 #include <ostream>
 
 namespace cs253 {
 namespace adversary {
 
-// Keep the shared CS253_V1 format without requiring the application library.
 inline void export_workload(std::ostream& output, const Workload& workload) {
     output << "CS253_V1\n";
     if (workload.mode == Mode::exact_extrema) {
@@ -36,5 +35,5 @@ inline void export_workload(std::ostream& output, const Workload& workload) {
     }
 }
 
-} // namespace adversary
-} // namespace cs253
+}
+}

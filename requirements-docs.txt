@@ -1,0 +1,3 @@
+# Only for regenerating PDFs; not used by the structures.
+PyMuPDF>=1.24
+

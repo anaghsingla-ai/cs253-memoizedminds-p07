@@ -1,4 +1,3 @@
-// Adversary module tests. Tool assistance is declared in TOOLS.md.
 #include "cs253/pipeline.hpp"
 #include "cs253/lazy_segment_tree.hpp"
 #include "cs253/sqrt_decomposition.hpp"
@@ -62,8 +61,6 @@ Range operation_range(const Operation& operation) {
     }
 }
 
-// A small independent array for these tests, not the production Oracle.
-// Wide arithmetic prevents the reference itself from overflowing.
 struct Reference {
     std::vector<Value> values;
     Mode mode;
@@ -177,7 +174,6 @@ void differential(const Workload& workload) {
                 require(same(blocks.query(query.range), expected), "B query mismatch");
             }
 
-            // Audits must not push tags or change the next operation's state.
             require(tree.check_invariants().ok, "A invariant failure");
             require(blocks.check_invariants().ok, "B invariant failure");
             operation_index++;
@@ -208,7 +204,7 @@ void differential(const Workload& workload) {
 }
 
 void exact_push_counts() {
-    // Compare the generated probe with every possible range for small n.
+
     for (std::size_t n = 1; n <= 48; n++) {
         GeneratorConfig config;
         config.elements = n;
@@ -239,7 +235,6 @@ void exact_push_counts() {
                 "push range not maximal for n=" + std::to_string(n));
     }
 
-    // n = 1, 2, 4, ... 16384. Check repeated generated queries.
     std::size_t n = 1;
     for (unsigned height = 0; height <= 14; height++) {
         GeneratorConfig config;
@@ -268,7 +263,6 @@ void exact_push_counts() {
             }
         }
 
-        // A partial update follows the same boundary paths.
         if (height > 0) {
             Range probe = std::get<Query>(workload.operations[1]).range;
             for (int repeat = 0; repeat < 3; repeat++) {
@@ -352,7 +346,6 @@ void errors() {
     config.mode = static_cast<Mode>(99);
     expect_rejected(targets[0], config);
 
-    // Check that the arithmetic guard rejects before any huge allocation.
     std::uint64_t safe_operations = static_cast<std::uint64_t>(
         (std::numeric_limits<Value>::max() - 1000) / 31);
     if (std::numeric_limits<std::size_t>::max() > safe_operations) {
@@ -456,7 +449,7 @@ std::size_t reproducibility_cases() {
     return runs;
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
     try {
