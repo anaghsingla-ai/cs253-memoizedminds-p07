@@ -60,3 +60,23 @@ The pipeline invokes submission_check.py --report-only so that known individual
 proof packaging blockers are recorded without pretending the release is ready.
 Run the checker without that flag for the release gate. Instructor access,
 peer approvals, interface sign-offs and final-tag submission remain manual checks.
+
+## Current main revision checked on 23 November 2026
+Source: 0cbeaa00c3ec11d9e31c5e31630c558056d8399a.
+Actions run: https://github.com/anaghsingla-ai/cs253-memoizedminds-p07/actions/runs/44916777766
+
+All ten jobs completed successfully: 20 CTests, 30 evaluator/reference cases,
+12 malformed-input rejections, eight full-scale D5 replays, 60 full-scale timing
+rows (five repetitions per point, deterministic counters matched), and 500000
+A/B evaluator answers from the exact width-16384 workload. The run's
+submission-validation artifact records current-code timings and runner metadata.
+
+The artifact's release checker reports three proof-format blockers: D1/D2/D3
+are three pages, and D1 has no roll number in its text. D4/D5/D6 pass the
+one-to-two-page/roll check. No formal examiner suite is available.
+
+The current B source differs from the published timing implementation (PR #31).
+Matching semantic counters across versions does not imply matching instruction
+counts, memory accesses or times. Keep published historical data and current CI
+reproduction clearly labeled. The menu seed conversion and B mode/invariant
+findings are source-review findings, not failures from an official hidden suite.

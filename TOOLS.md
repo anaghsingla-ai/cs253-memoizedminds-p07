@@ -78,3 +78,10 @@ regenerated the shared report/slides/figures from committed measurements.
 The plots label same-data calibration honestly. Teammate algorithms and individual
 proof content were not edited. Python validation and GitHub CI provide execution
 evidence; peer review, source attribution and individual sign-offs remain human.
+
+## Anagh: shared submission refresh, 23 November 2026
+Representative prompt: "do if anything from my part or team you can do".
+Codex helped reconcile the shared report and slides with the current source and
+CI evidence, including the timing/implementation revision distinction. PyMuPDF
+regenerated the shared PDFs. Teammate algorithms and individual derivation
+content were not edited. The owner must review the summaries before submission.
