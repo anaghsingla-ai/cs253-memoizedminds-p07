@@ -8,7 +8,7 @@
       "Structure B: square-root decomposition",
       "Oracle: independent plain array"
     ],
-    "footer": "Shared submission deck - 21 November 2026"
+    "footer": "Shared submission deck - updated 23 November 2026"
   },
   {
     "title": "One interface, two arithmetic modes",
@@ -49,8 +49,8 @@
     "diagram": "blocks",
     "body": [
       "Full block: map aggregates and compose the tag in O(1).",
-      "Partial update: materialize and rebuild the boundary block.",
-      "Partial query: summarize the covered raw values, then map.",
+      "Partial update: push the block tag, update raw values, then rebuild.",
+      "Partial query: map each covered raw value and combine its answer.",
       "O(n/b+b) worst case. b=ceil(sqrt(n)); short last block uses its length."
     ]
   },
@@ -102,7 +102,7 @@
   },
   {
     "title": "Full-scale means bracket two changes",
-    "subtitle": "Analyst - Ranveer - D6",
+    "subtitle": "Analyst - Ranveer - D6 | Published campaign, before PR #31",
     "figure": "full_scale_time.svg",
     "body": [
       "n=q=1000000; seed 253; five trials per structure and width.",
@@ -112,7 +112,7 @@
   },
   {
     "title": "Cost model: calibrated after measurement",
-    "subtitle": "Analyst - Ranveer - D6",
+    "subtitle": "Analyst - Ranveer - D6 | Fit of the published campaign",
     "body": [
       "A: node visits + pushes. B: full blocks + element scans.",
       "Dashed curves fit these same means; they are not independent predictions.",
@@ -125,10 +125,10 @@
     "subtitle": "Team release checklist",
     "body": [
       "Fresh clone: install requirements-docs.txt; run bash scripts/run_all.sh.",
-      "D5: eight full-scale correctness replays; exact counters verified.",
-      "Owners: B bounds/mode checks, menu seeds, 1-2-page named proofs.",
-      "Peer-approved PRs and interface sign-offs must be genuine.",
-      "Verify instructor access, then tag the completed release and submit its SHA."
+      "Current main CI: 20 CTests, eight full-scale D5 replays and 60 timing rows.",
+      "Owners: B mode/bounds, menu seeds, D1-D3 proof length and sign-offs.",
+      "Published timing data predate current B loops; CI logs record current timings.",
+      "Obtain peer reviews and instructor access; finish the release gate before tagging."
     ]
   }
 ]

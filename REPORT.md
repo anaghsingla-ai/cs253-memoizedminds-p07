@@ -1,5 +1,5 @@
 # Project 7 - Lazy Propagation and What Composes
-Team MemoizedMinds | CS 253 / MA 253 | Technical report, 21 November 2026
+Team MemoizedMinds | CS 253 / MA 253 | Technical report, updated 23 November 2026
 
 ## 1. Team and contributions
 | Member / roll | Role | Module / derivation |
@@ -113,13 +113,12 @@ A block record contains its pending a,b pair, modular sum and exact extrema.
 The same affine identities apply as for A, but the spatial partition is flat.
 
 A fully covered block takes O(1) work: map its sum and extrema and compose its
-pending tag. For partial updates, one fused pass materializes every raw value
-in the boundary block, applies the requested update where covered, and rebuilds
-the block aggregate. It resets the pending map to identity. Even a one-element
+pending tag. For partial updates, the current implementation materializes a pending block
+tag, updates the covered raw elements, then recomputes the block aggregate. It resets the pending map to identity. Even a one-element
 update can therefore cost O(b), which matters when interpreting narrow widths.
 
-A partial query scans only the covered raw elements, combines their summary
-and applies the block's pending map to that summary. It does not materialize
+A partial query maps each covered raw value through the block's pending tag
+and combines those logical values. It does not materialize
 the block. Multiple covered blocks are folded into the result, respecting
 length, modular sums and the enabled extrema. Short final blocks retain their
 own length in all formulas.
@@ -133,8 +132,10 @@ reset to automatic for the block-friendly generator's alignment guarantee.
 The simpler contiguous loops can have favorable constants, but this report
 does not claim measured cache misses or vectorization. Those claims need
 profiler evidence. The D2 PDF exists. Configurable-block-size bounds and invalid-mode rejection
-still require owner validation: the current ceiling expression can overflow
-when the public block-size setting is SIZE_MAX, producing zero blocks for n=2.
+still require owner validation. With n=2 and block size SIZE_MAX, build now
+creates one block, but the invariant checker's ceiling expression wraps to
+zero and falsely reports a block-count mismatch. Build also accepts an invalid
+Mode value. These are source-derived findings; the official hidden tests are unavailable.
 
 ## 6. Beyond the lecture: affine tags and modulo
 Affine updates compose because applying f(x)=a1*x+b1 and then g(x)=a2*x+b2
@@ -178,6 +179,9 @@ audit invariants and exhaust all query intervals at small n.
 The new evaluator checker compares the parser/CLI output against Python
 integer arithmetic and tests malformed input. See docs/VALIDATION.md for
 revision-specific CI evidence rather than treating historical counts as current.
+The current contract smoke test covers pre-build size/mode/update/query and
+empty builds for A, B and the oracle. Extreme block sizes and the menu seed
+conversion remain outside those passing checks.
 
 | Date | Module | Symptom / discovery | Status |
 |---|---|---|---|
@@ -234,14 +238,23 @@ validation. The full-width drop for A is structural; residuals alone cannot
 establish cache behavior. A new unseen-width campaign would test the fit.
 
 ## 10. Experimental setup and reproducibility
-All timings were collected on Intel(R) Xeon(R) 6985P-C (2 vCPUs, L1d 48 KiB, L1i 64 KiB, L2 2 MiB, L3 504 MiB), Linux 6.12.105+ x86_64 (Debian 12), GCC 12.2.0 (`-std=c++17 -O3 -Wall -Wextra -Wpedantic`), recorded in `results/machine.md`.
+The published CSV timings were collected on Intel(R) Xeon(R) 6985P-C (2 vCPUs, L1d 48 KiB, L1i 64 KiB, L2 2 MiB, L3 504 MiB), Linux 6.12.105+ x86_64 (Debian 12), GCC 12.2.0 (`-std=c++17 -O3 -Wall -Wextra -Wpedantic`), recorded in `results/machine.md`.
 
 The full-scale timing CSV (`results/raw/full_scale_width_sweep.csv`) contains 60 rows: 6 widths (`1, 64, 1000, 16384, 262144, 1000000`), 2 structures (`structA`, `structB`), and 5 repetitions each, at `n = q = 1,000,000`, `seed = 253`, `exact_extrema` mode, and automatic `b = 1,000`. `benchmark()` validates A/B agreement before timing, builds each structure fresh before each repetition, resets counters, and surrounds only replay with `std::chrono::steady_clock`.
 
 Reproducible input recipe: `bench/run_full_scale.cpp` deterministically generates the exact `seed = 253` workload via `std::mt19937_64` and exports the full `CS253_V1` input stream when run with `--save-input` (documented in `results/raw/workloads.md`). The earlier `n = q = 100,000` campaign (`results/raw/width_sweep.csv`) is retained as historical data.
 
+The published full-scale data were committed in d33379b168558e4f406326391885ff8c7d583221.
+Structure B was subsequently changed in 34ee633febca6edaa6c9638bde66712d4bb28a86
+and merged via PR #31. Its partial-update/query loops differ from the measured
+version. The published table remains evidence for that earlier implementation;
+matching counters do not establish equal internal work or elapsed times.
+Current-code timings are independently reproduced in the CI artifact, with its
+runner/compiler metadata, rather than silently replacing the published CSV.
+
 ## 11. Results, figures and interpretation
-Full-scale timings (`n = q = 1,000,000`, 5 repetitions, mean and sample SD in seconds, from `results/raw/full_scale_width_sweep.csv`):
+Published campaign timings, for the implementation described in section 10
+(`n = q = 1,000,000`, 5 repetitions, mean and sample SD in seconds, from `results/raw/full_scale_width_sweep.csv`):
 
 | Width (w) | Struct A Mean (s) | Struct A SD (s) | Struct B Mean (s) | Struct B SD (s) |
 | --- | --- | --- | --- | --- |
@@ -291,12 +304,12 @@ Interpretation:
 - The sampled mean ordering changes between widths 1 and 64, and again between 64 and 1000. These are crossover brackets, not precise locations. At width 1000 the timing spread overlaps, so more nearby trials are required for a confident boundary.
 
 ## 12. Limitations and next measurements
-The final release still requires resolution of the following implementation, measurement and submission limitations:
-- Implementation: B needs overflow-safe configurable block sizes and mode validation; the menu needs unsigned seed parsing. A lifecycle/mode validation was fixed in PR #27.
-- Individual packaging: D1, D2, D3 and D6 PDFs currently span three pages; D4 spans four. The guideline permits one or two pages. D1 also lacks its name/roll inside the PDF. D2/D3/D4 filenames need uppercase prefixes, and D2/D6 Markdown still needs owner finalization. Use scripts/submission_check.py; owners must approve their individual proofs.
-- Arithmetic domain: Exact mode is restricted to gains `{-1, 0, 1}` and `int64` values/composed offsets; general modular gains cannot return exact ordered extrema.
-- Measurement gaps: Full-scale (`n = q = 1,000,000`, 5 repetitions) timings, reproducible input recipes, and same-data fitted curves are recorded, but hardware profiler output (cache-miss counters), peak memory logging, and randomized A/B trial ordering remain uncollected.
-- Release check: A final fresh-clone run from the completed annotated tag is still necessary, along with instructor access and the portal's required commit SHA.
+- Implementation: B needs invalid-mode rejection and an overflow-safe block-count invariant; menu option 5 still passes a uint64 limit through signed long long. The CLI's seed support does not fix that menu path.
+- Proof packaging: D1/D2/D3 PDFs are three pages; the guideline permits one or two. D1 lacks its roll inside the PDF. All six filenames are correct; D4/D5/D6 pass the page-count and roll checks. D2 Markdown is still unnamed/draft and D6 Markdown retains draft status; owners must finalize their own sources.
+- Arithmetic: EXACT supports gains {-1,0,1} with int64 values/composed offsets. MODULAR supports general gains without exact ordered extrema.
+- Measurements: the published campaign predates the latest B loops. The fitted curves use the same measured data, not held-out predictions. The sampled widths only bracket crossovers; nearby measurements and explanation of the narrow-width mismatch remain needed. Cache/vectorization claims require profiler/compiler evidence.
+- Documentation: the shared summaries do not replace each member's verified sources and proof. Structure-owner interface approvals and genuine peer approvals for each member remain incomplete.
+- Release: main 0cbeaa00 passed all ten CI jobs, including full-scale reproduction. The release checker still reports three proof-format blockers. No checkpoint/final tags were returned. Confirm instructor/TA access, finish owner actions, obtain review, rerun the release gate and rehearse a fresh clone of the annotated final tag before submitting its full SHA. Historical deadlines/tags must not be invented.
 
 ## 13. References, sources and tool use
 Primary project requirements: CS253_MA253_Lab_Projects.docx (2).pdf,
