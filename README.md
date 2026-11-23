@@ -1,3 +1,4 @@
+
 # Project 07: Lazy Propagation and What Composes
 Team MemoizedMinds - CS 253 / MA 253, November 2026
 
@@ -30,34 +31,176 @@ Eight correctness runs cover all four D5 families in both modes at that scale.
   CI runs Ubuntu; CI correctness counters are not measurements on that timing machine.
 
 ## Build
-From a fresh clone:
 
-```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --parallel 2
+From a fresh clone, first open PowerShell or a terminal in the repository directory.
+
+### Windows (PowerShell)
+
+**Step 1 — Configure the project:**
+
+```powershell
+cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
 ```
 
-On Windows with MinGW, add `-G "MinGW Makefiles"` when configuring.
-Executables below have a `.exe` suffix on Windows. `run.ps1` also offers Demo,
-Menu and Tests modes; `./build/calibration --menu` opens the workbench.
+Wait for configuration to finish successfully.
+
+**Step 2 — Compile the project:**
+
+```powershell
+cmake --build build --parallel 2
+```
+
+Wait for compilation to finish before running the program.
+
+**Important:** Do not delete the `build` directory between configuration and compilation. If you delete it, run Step 1 again before Step 2.
+
+**Step 3 — Run the interactive workbench:**
+
+```powershell
+.\build\calibration.exe --menu
+```
+
+The Windows helper script also offers Demo, Menu and Tests modes.
+
+**Run the default mode:**
+
+```powershell
+.\run.ps1
+```
+
+**Open the menu:**
+
+```powershell
+.\run.ps1 -Mode Menu
+```
+
+**Run tests:**
+
+```powershell
+.\run.ps1 -Mode Tests
+```
+
+### Linux / macOS / WSL
+
+**Step 1 — Configure the project:**
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+```
+
+**Step 2 — Compile the project:**
+
+```bash
+cmake --build build --parallel 2
+```
+
+**Step 3 — Open the workbench:**
+
+```bash
+./build/calibration --menu
+```
 
 ## Quick start
+
+### Windows (PowerShell)
+
+**Run Structure A using the sample input:**
+
+```powershell
+Get-Content tests/cases/architect_sample.txt | python scripts/run_ops.py --structure A
+```
+
+**Run Structure B using the sample input:**
+
+```powershell
+Get-Content tests/cases/architect_sample.txt | python scripts/run_ops.py --structure B
+```
+
+**Run the human-readable simulator using both structures:**
+
+```powershell
+.\build\calibration.exe --run tests/cases/architect_sample.txt --structure both
+```
+
+PowerShell does not support Bash-style input redirection using `<`. Use the
+`Get-Content` pipeline shown above.
+
+### Linux / macOS / WSL
+
+**Run Structure A:**
+
 ```bash
 python3 scripts/run_ops.py --structure A < tests/cases/architect_sample.txt
 ```
+
+**Run Structure B:**
+
+```bash
+python3 scripts/run_ops.py --structure B < tests/cases/architect_sample.txt
+```
+
+**Run the human-readable simulator using both structures:**
+
+```bash
+./build/calibration --run tests/cases/architect_sample.txt --structure both
+```
+
 Expected output (sum is always modulo 998244353):
+
 ```text
 4 14 1 7
 4 998244351 -4 2
 4 7 -4 5
 ```
-Use `./build/calibration --run tests/cases/architect_sample.txt --structure both`
-for the human-readable simulator, throughput and A/B/Oracle comparison.
 
 ## Tests
+
+### Windows (PowerShell)
+
+**Run the Windows test helper:**
+
+```powershell
+.\run.ps1 -Mode Tests
+```
+
+**Alternatively, run CTest directly:**
+
+```powershell
+ctest --test-dir build --output-on-failure
+```
+
+**Run the evaluator test:**
+
+```powershell
+python tests/evaluator_test.py --build-dir build
+```
+
+The Bash-based adversary scripts should be run through WSL or another Bash
+environment, not directly in native PowerShell.
+
+### Linux / macOS / WSL
+
+**Run CTest:**
+
 ```bash
 ctest --test-dir build --output-on-failure
+```
+
+**Run the evaluator test:**
+
+```bash
 python3 tests/evaluator_test.py --build-dir build
+```
+
+**Run the refactor check:**
+
+```bash
 bash adversary/check_refactor.sh "$PWD/build"
+```
+
+**Run the adversary scale verification:**
+
+```bash
 bash scripts/verify_adversary_scale.sh "$PWD/build"
 ```
 
@@ -76,11 +219,35 @@ Current full-scale evidence is in `results/validation/adversary_full_scale.csv`
 and `docs/VALIDATION.md`. Verification CSVs contain operation counts, not timings.
 
 ## Evaluation interface
+
 The two supplied course PDFs do not define an external Project 7 wire format.
 The reproducible repository interface is:
 
+### Windows (PowerShell)
+
+**Run Structure A:**
+
+```powershell
+Get-Content ops.txt | python scripts/run_ops.py --structure A
+```
+
+**Run Structure B:**
+
+```powershell
+Get-Content ops.txt | python scripts/run_ops.py --structure B
+```
+
+### Linux / macOS / WSL
+
+**Run Structure A:**
+
 ```bash
 python3 scripts/run_ops.py --structure A < ops.txt > out.txt
+```
+
+**Run Structure B:**
+
+```bash
 python3 scripts/run_ops.py --structure B < ops.txt > out.txt
 ```
 
@@ -89,6 +256,7 @@ It never changes the algorithms. If the instructor separately publishes another
 protocol, the Architect must adapt this entry point before the final tag.
 
 Input is whitespace-separated:
+
 ```text
 CS253_V1
 EXACT
@@ -99,6 +267,7 @@ Q 0 4
 U 0 4 -1 3
 Q 0 4
 ```
+
 Fields: header; EXACT or MODULAR; uint64 seed; n and q; n int64 initial values;
 q operations. `U l r a b` updates [l,r); `Q l r` queries it. All ranges are
 zero-based and half-open, with 0<=l<=r<=n. Empty arrays and ranges are legal.
@@ -108,17 +277,25 @@ EXACT allows a in {-1,0,1}, returns exact int64 extrema, and requires values
 **and composed offsets** to fit int64. MODULAR permits any int64 a,b and returns
 only the sum residue; extrema are NA. Output has one row per query:
 `length sum_mod minimum maximum`. The example above prints:
+
 ```text
 4 14 1 7
 4 998244351 -4 2
 ```
+
 An empty range prints `0 0 NA NA`. Invalid input exits nonzero and reports an
 error on stderr. Use `--build-dir PATH` for a different build directory.
 
 ## Benchmarks and figures
+
+The full benchmark pipeline uses Bash scripts. Run it from Linux, macOS, or WSL.
+
+**Run the complete pipeline:**
+
 ```bash
 bash scripts/run_all.sh
 ```
+
 This builds all targets, runs 20 CTests and independent evaluator tests,
 executes all eight full-scale D5 replays, and runs the full-scale benchmark
 (six widths, A/B, five repetitions). It verifies deterministic counters against
@@ -134,9 +311,11 @@ CI uploads CSVs, runner/compiler details, test logs and a release-status report.
 A passing development pipeline does not mean the release checker has no blockers.
 
 Regenerate figures and documents without running C++:
+
 ```bash
 python3 scripts/export_docs.py
 ```
+
 The full-scale renderer creates SVG/PNG runtime, counter and calibrated-model
 figures from the committed 60-row CSV. It preserves zero counter values and
 shows sample standard deviations. The model constants are fitted to the same
@@ -203,5 +382,3 @@ Do not create a final tag while these blockers remain.
 See TOOLS.md for AI use and representative prompts. The report lists source
 files and the assigned Project 7 reading; members must cite the external
 sources they actually consulted. No library container replaces either structure.
-
-
