@@ -79,10 +79,19 @@ and `docs/VALIDATION.md`. Verification CSVs contain operation counts, not timing
 The two supplied course PDFs do not define an external Project 7 wire format.
 The reproducible repository interface is:
 
-```bash
+**Windows (PowerShell):**
+
+~~~powershell
+python scripts/run_ops.py --structure A < ops.txt > out.txt
+python scripts/run_ops.py --structure B < ops.txt > out.txt
+~~~
+
+**Linux / macOS:**
+
+~~~bash
 python3 scripts/run_ops.py --structure A < ops.txt > out.txt
 python3 scripts/run_ops.py --structure B < ops.txt > out.txt
-```
+~~~
 
 The adapter calls the existing C++ simulator and removes headings and timings.
 It never changes the algorithms. If the instructor separately publishes another
